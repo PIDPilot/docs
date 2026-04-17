@@ -9,38 +9,337 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as DocsRouteImport } from './routes/docs'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DocsIndexRouteImport } from './routes/docs.index'
+import { Route as DocsTemplatesRouteImport } from './routes/docs.templates'
+import { Route as DocsQuickStartRouteImport } from './routes/docs.quick-start'
+import { Route as DocsInstallationRouteImport } from './routes/docs.installation'
+import { Route as DocsVelocityRefinementRouteImport } from './routes/docs.velocity.refinement'
+import { Route as DocsVelocityOverviewRouteImport } from './routes/docs.velocity.overview'
+import { Route as DocsVelocityKuSearchRouteImport } from './routes/docs.velocity.ku-search'
+import { Route as DocsVelocityFSweepRouteImport } from './routes/docs.velocity.f-sweep'
+import { Route as DocsVelocityDisruptionRouteImport } from './routes/docs.velocity.disruption'
+import { Route as DocsVelocityConfigRouteImport } from './routes/docs.velocity.config'
+import { Route as DocsReferenceTelemetryRouteImport } from './routes/docs.reference.telemetry'
+import { Route as DocsReferenceSetupRulesRouteImport } from './routes/docs.reference.setup-rules'
+import { Route as DocsReferencePracticalNotesRouteImport } from './routes/docs.reference.practical-notes'
+import { Route as DocsReferenceFaqRouteImport } from './routes/docs.reference.faq'
+import { Route as DocsPositionRefinementRouteImport } from './routes/docs.position.refinement'
+import { Route as DocsPositionOverviewRouteImport } from './routes/docs.position.overview'
+import { Route as DocsPositionKuSearchRouteImport } from './routes/docs.position.ku-search'
+import { Route as DocsPositionHoldFRouteImport } from './routes/docs.position.hold-f'
+import { Route as DocsPositionDisturbanceRouteImport } from './routes/docs.position.disturbance'
+import { Route as DocsPositionConfigRouteImport } from './routes/docs.position.config'
+import { Route as DocsConceptsTuningModesRouteImport } from './routes/docs.concepts.tuning-modes'
+import { Route as DocsConceptsScoringRouteImport } from './routes/docs.concepts.scoring'
+import { Route as DocsConceptsPidfTermsRouteImport } from './routes/docs.concepts.pidf-terms'
 
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocsIndexRoute = DocsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsTemplatesRoute = DocsTemplatesRouteImport.update({
+  id: '/templates',
+  path: '/templates',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsQuickStartRoute = DocsQuickStartRouteImport.update({
+  id: '/quick-start',
+  path: '/quick-start',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsInstallationRoute = DocsInstallationRouteImport.update({
+  id: '/installation',
+  path: '/installation',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsVelocityRefinementRoute = DocsVelocityRefinementRouteImport.update({
+  id: '/velocity/refinement',
+  path: '/velocity/refinement',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsVelocityOverviewRoute = DocsVelocityOverviewRouteImport.update({
+  id: '/velocity/overview',
+  path: '/velocity/overview',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsVelocityKuSearchRoute = DocsVelocityKuSearchRouteImport.update({
+  id: '/velocity/ku-search',
+  path: '/velocity/ku-search',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsVelocityFSweepRoute = DocsVelocityFSweepRouteImport.update({
+  id: '/velocity/f-sweep',
+  path: '/velocity/f-sweep',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsVelocityDisruptionRoute = DocsVelocityDisruptionRouteImport.update({
+  id: '/velocity/disruption',
+  path: '/velocity/disruption',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsVelocityConfigRoute = DocsVelocityConfigRouteImport.update({
+  id: '/velocity/config',
+  path: '/velocity/config',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsReferenceTelemetryRoute = DocsReferenceTelemetryRouteImport.update({
+  id: '/reference/telemetry',
+  path: '/reference/telemetry',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsReferenceSetupRulesRoute = DocsReferenceSetupRulesRouteImport.update({
+  id: '/reference/setup-rules',
+  path: '/reference/setup-rules',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsReferencePracticalNotesRoute =
+  DocsReferencePracticalNotesRouteImport.update({
+    id: '/reference/practical-notes',
+    path: '/reference/practical-notes',
+    getParentRoute: () => DocsRoute,
+  } as any)
+const DocsReferenceFaqRoute = DocsReferenceFaqRouteImport.update({
+  id: '/reference/faq',
+  path: '/reference/faq',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsPositionRefinementRoute = DocsPositionRefinementRouteImport.update({
+  id: '/position/refinement',
+  path: '/position/refinement',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsPositionOverviewRoute = DocsPositionOverviewRouteImport.update({
+  id: '/position/overview',
+  path: '/position/overview',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsPositionKuSearchRoute = DocsPositionKuSearchRouteImport.update({
+  id: '/position/ku-search',
+  path: '/position/ku-search',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsPositionHoldFRoute = DocsPositionHoldFRouteImport.update({
+  id: '/position/hold-f',
+  path: '/position/hold-f',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsPositionDisturbanceRoute = DocsPositionDisturbanceRouteImport.update({
+  id: '/position/disturbance',
+  path: '/position/disturbance',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsPositionConfigRoute = DocsPositionConfigRouteImport.update({
+  id: '/position/config',
+  path: '/position/config',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsConceptsTuningModesRoute = DocsConceptsTuningModesRouteImport.update({
+  id: '/concepts/tuning-modes',
+  path: '/concepts/tuning-modes',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsConceptsScoringRoute = DocsConceptsScoringRouteImport.update({
+  id: '/concepts/scoring',
+  path: '/concepts/scoring',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsConceptsPidfTermsRoute = DocsConceptsPidfTermsRouteImport.update({
+  id: '/concepts/pidf-terms',
+  path: '/concepts/pidf-terms',
+  getParentRoute: () => DocsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/docs': typeof DocsRouteWithChildren
+  '/docs/installation': typeof DocsInstallationRoute
+  '/docs/quick-start': typeof DocsQuickStartRoute
+  '/docs/templates': typeof DocsTemplatesRoute
+  '/docs/': typeof DocsIndexRoute
+  '/docs/concepts/pidf-terms': typeof DocsConceptsPidfTermsRoute
+  '/docs/concepts/scoring': typeof DocsConceptsScoringRoute
+  '/docs/concepts/tuning-modes': typeof DocsConceptsTuningModesRoute
+  '/docs/position/config': typeof DocsPositionConfigRoute
+  '/docs/position/disturbance': typeof DocsPositionDisturbanceRoute
+  '/docs/position/hold-f': typeof DocsPositionHoldFRoute
+  '/docs/position/ku-search': typeof DocsPositionKuSearchRoute
+  '/docs/position/overview': typeof DocsPositionOverviewRoute
+  '/docs/position/refinement': typeof DocsPositionRefinementRoute
+  '/docs/reference/faq': typeof DocsReferenceFaqRoute
+  '/docs/reference/practical-notes': typeof DocsReferencePracticalNotesRoute
+  '/docs/reference/setup-rules': typeof DocsReferenceSetupRulesRoute
+  '/docs/reference/telemetry': typeof DocsReferenceTelemetryRoute
+  '/docs/velocity/config': typeof DocsVelocityConfigRoute
+  '/docs/velocity/disruption': typeof DocsVelocityDisruptionRoute
+  '/docs/velocity/f-sweep': typeof DocsVelocityFSweepRoute
+  '/docs/velocity/ku-search': typeof DocsVelocityKuSearchRoute
+  '/docs/velocity/overview': typeof DocsVelocityOverviewRoute
+  '/docs/velocity/refinement': typeof DocsVelocityRefinementRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/docs/installation': typeof DocsInstallationRoute
+  '/docs/quick-start': typeof DocsQuickStartRoute
+  '/docs/templates': typeof DocsTemplatesRoute
+  '/docs': typeof DocsIndexRoute
+  '/docs/concepts/pidf-terms': typeof DocsConceptsPidfTermsRoute
+  '/docs/concepts/scoring': typeof DocsConceptsScoringRoute
+  '/docs/concepts/tuning-modes': typeof DocsConceptsTuningModesRoute
+  '/docs/position/config': typeof DocsPositionConfigRoute
+  '/docs/position/disturbance': typeof DocsPositionDisturbanceRoute
+  '/docs/position/hold-f': typeof DocsPositionHoldFRoute
+  '/docs/position/ku-search': typeof DocsPositionKuSearchRoute
+  '/docs/position/overview': typeof DocsPositionOverviewRoute
+  '/docs/position/refinement': typeof DocsPositionRefinementRoute
+  '/docs/reference/faq': typeof DocsReferenceFaqRoute
+  '/docs/reference/practical-notes': typeof DocsReferencePracticalNotesRoute
+  '/docs/reference/setup-rules': typeof DocsReferenceSetupRulesRoute
+  '/docs/reference/telemetry': typeof DocsReferenceTelemetryRoute
+  '/docs/velocity/config': typeof DocsVelocityConfigRoute
+  '/docs/velocity/disruption': typeof DocsVelocityDisruptionRoute
+  '/docs/velocity/f-sweep': typeof DocsVelocityFSweepRoute
+  '/docs/velocity/ku-search': typeof DocsVelocityKuSearchRoute
+  '/docs/velocity/overview': typeof DocsVelocityOverviewRoute
+  '/docs/velocity/refinement': typeof DocsVelocityRefinementRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/docs': typeof DocsRouteWithChildren
+  '/docs/installation': typeof DocsInstallationRoute
+  '/docs/quick-start': typeof DocsQuickStartRoute
+  '/docs/templates': typeof DocsTemplatesRoute
+  '/docs/': typeof DocsIndexRoute
+  '/docs/concepts/pidf-terms': typeof DocsConceptsPidfTermsRoute
+  '/docs/concepts/scoring': typeof DocsConceptsScoringRoute
+  '/docs/concepts/tuning-modes': typeof DocsConceptsTuningModesRoute
+  '/docs/position/config': typeof DocsPositionConfigRoute
+  '/docs/position/disturbance': typeof DocsPositionDisturbanceRoute
+  '/docs/position/hold-f': typeof DocsPositionHoldFRoute
+  '/docs/position/ku-search': typeof DocsPositionKuSearchRoute
+  '/docs/position/overview': typeof DocsPositionOverviewRoute
+  '/docs/position/refinement': typeof DocsPositionRefinementRoute
+  '/docs/reference/faq': typeof DocsReferenceFaqRoute
+  '/docs/reference/practical-notes': typeof DocsReferencePracticalNotesRoute
+  '/docs/reference/setup-rules': typeof DocsReferenceSetupRulesRoute
+  '/docs/reference/telemetry': typeof DocsReferenceTelemetryRoute
+  '/docs/velocity/config': typeof DocsVelocityConfigRoute
+  '/docs/velocity/disruption': typeof DocsVelocityDisruptionRoute
+  '/docs/velocity/f-sweep': typeof DocsVelocityFSweepRoute
+  '/docs/velocity/ku-search': typeof DocsVelocityKuSearchRoute
+  '/docs/velocity/overview': typeof DocsVelocityOverviewRoute
+  '/docs/velocity/refinement': typeof DocsVelocityRefinementRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/docs'
+    | '/docs/installation'
+    | '/docs/quick-start'
+    | '/docs/templates'
+    | '/docs/'
+    | '/docs/concepts/pidf-terms'
+    | '/docs/concepts/scoring'
+    | '/docs/concepts/tuning-modes'
+    | '/docs/position/config'
+    | '/docs/position/disturbance'
+    | '/docs/position/hold-f'
+    | '/docs/position/ku-search'
+    | '/docs/position/overview'
+    | '/docs/position/refinement'
+    | '/docs/reference/faq'
+    | '/docs/reference/practical-notes'
+    | '/docs/reference/setup-rules'
+    | '/docs/reference/telemetry'
+    | '/docs/velocity/config'
+    | '/docs/velocity/disruption'
+    | '/docs/velocity/f-sweep'
+    | '/docs/velocity/ku-search'
+    | '/docs/velocity/overview'
+    | '/docs/velocity/refinement'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/docs/installation'
+    | '/docs/quick-start'
+    | '/docs/templates'
+    | '/docs'
+    | '/docs/concepts/pidf-terms'
+    | '/docs/concepts/scoring'
+    | '/docs/concepts/tuning-modes'
+    | '/docs/position/config'
+    | '/docs/position/disturbance'
+    | '/docs/position/hold-f'
+    | '/docs/position/ku-search'
+    | '/docs/position/overview'
+    | '/docs/position/refinement'
+    | '/docs/reference/faq'
+    | '/docs/reference/practical-notes'
+    | '/docs/reference/setup-rules'
+    | '/docs/reference/telemetry'
+    | '/docs/velocity/config'
+    | '/docs/velocity/disruption'
+    | '/docs/velocity/f-sweep'
+    | '/docs/velocity/ku-search'
+    | '/docs/velocity/overview'
+    | '/docs/velocity/refinement'
+  id:
+    | '__root__'
+    | '/'
+    | '/docs'
+    | '/docs/installation'
+    | '/docs/quick-start'
+    | '/docs/templates'
+    | '/docs/'
+    | '/docs/concepts/pidf-terms'
+    | '/docs/concepts/scoring'
+    | '/docs/concepts/tuning-modes'
+    | '/docs/position/config'
+    | '/docs/position/disturbance'
+    | '/docs/position/hold-f'
+    | '/docs/position/ku-search'
+    | '/docs/position/overview'
+    | '/docs/position/refinement'
+    | '/docs/reference/faq'
+    | '/docs/reference/practical-notes'
+    | '/docs/reference/setup-rules'
+    | '/docs/reference/telemetry'
+    | '/docs/velocity/config'
+    | '/docs/velocity/disruption'
+    | '/docs/velocity/f-sweep'
+    | '/docs/velocity/ku-search'
+    | '/docs/velocity/overview'
+    | '/docs/velocity/refinement'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DocsRoute: typeof DocsRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +347,227 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/docs/': {
+      id: '/docs/'
+      path: '/'
+      fullPath: '/docs/'
+      preLoaderRoute: typeof DocsIndexRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/templates': {
+      id: '/docs/templates'
+      path: '/templates'
+      fullPath: '/docs/templates'
+      preLoaderRoute: typeof DocsTemplatesRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/quick-start': {
+      id: '/docs/quick-start'
+      path: '/quick-start'
+      fullPath: '/docs/quick-start'
+      preLoaderRoute: typeof DocsQuickStartRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/installation': {
+      id: '/docs/installation'
+      path: '/installation'
+      fullPath: '/docs/installation'
+      preLoaderRoute: typeof DocsInstallationRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/velocity/refinement': {
+      id: '/docs/velocity/refinement'
+      path: '/velocity/refinement'
+      fullPath: '/docs/velocity/refinement'
+      preLoaderRoute: typeof DocsVelocityRefinementRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/velocity/overview': {
+      id: '/docs/velocity/overview'
+      path: '/velocity/overview'
+      fullPath: '/docs/velocity/overview'
+      preLoaderRoute: typeof DocsVelocityOverviewRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/velocity/ku-search': {
+      id: '/docs/velocity/ku-search'
+      path: '/velocity/ku-search'
+      fullPath: '/docs/velocity/ku-search'
+      preLoaderRoute: typeof DocsVelocityKuSearchRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/velocity/f-sweep': {
+      id: '/docs/velocity/f-sweep'
+      path: '/velocity/f-sweep'
+      fullPath: '/docs/velocity/f-sweep'
+      preLoaderRoute: typeof DocsVelocityFSweepRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/velocity/disruption': {
+      id: '/docs/velocity/disruption'
+      path: '/velocity/disruption'
+      fullPath: '/docs/velocity/disruption'
+      preLoaderRoute: typeof DocsVelocityDisruptionRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/velocity/config': {
+      id: '/docs/velocity/config'
+      path: '/velocity/config'
+      fullPath: '/docs/velocity/config'
+      preLoaderRoute: typeof DocsVelocityConfigRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/reference/telemetry': {
+      id: '/docs/reference/telemetry'
+      path: '/reference/telemetry'
+      fullPath: '/docs/reference/telemetry'
+      preLoaderRoute: typeof DocsReferenceTelemetryRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/reference/setup-rules': {
+      id: '/docs/reference/setup-rules'
+      path: '/reference/setup-rules'
+      fullPath: '/docs/reference/setup-rules'
+      preLoaderRoute: typeof DocsReferenceSetupRulesRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/reference/practical-notes': {
+      id: '/docs/reference/practical-notes'
+      path: '/reference/practical-notes'
+      fullPath: '/docs/reference/practical-notes'
+      preLoaderRoute: typeof DocsReferencePracticalNotesRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/reference/faq': {
+      id: '/docs/reference/faq'
+      path: '/reference/faq'
+      fullPath: '/docs/reference/faq'
+      preLoaderRoute: typeof DocsReferenceFaqRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/position/refinement': {
+      id: '/docs/position/refinement'
+      path: '/position/refinement'
+      fullPath: '/docs/position/refinement'
+      preLoaderRoute: typeof DocsPositionRefinementRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/position/overview': {
+      id: '/docs/position/overview'
+      path: '/position/overview'
+      fullPath: '/docs/position/overview'
+      preLoaderRoute: typeof DocsPositionOverviewRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/position/ku-search': {
+      id: '/docs/position/ku-search'
+      path: '/position/ku-search'
+      fullPath: '/docs/position/ku-search'
+      preLoaderRoute: typeof DocsPositionKuSearchRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/position/hold-f': {
+      id: '/docs/position/hold-f'
+      path: '/position/hold-f'
+      fullPath: '/docs/position/hold-f'
+      preLoaderRoute: typeof DocsPositionHoldFRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/position/disturbance': {
+      id: '/docs/position/disturbance'
+      path: '/position/disturbance'
+      fullPath: '/docs/position/disturbance'
+      preLoaderRoute: typeof DocsPositionDisturbanceRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/position/config': {
+      id: '/docs/position/config'
+      path: '/position/config'
+      fullPath: '/docs/position/config'
+      preLoaderRoute: typeof DocsPositionConfigRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/concepts/tuning-modes': {
+      id: '/docs/concepts/tuning-modes'
+      path: '/concepts/tuning-modes'
+      fullPath: '/docs/concepts/tuning-modes'
+      preLoaderRoute: typeof DocsConceptsTuningModesRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/concepts/scoring': {
+      id: '/docs/concepts/scoring'
+      path: '/concepts/scoring'
+      fullPath: '/docs/concepts/scoring'
+      preLoaderRoute: typeof DocsConceptsScoringRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/concepts/pidf-terms': {
+      id: '/docs/concepts/pidf-terms'
+      path: '/concepts/pidf-terms'
+      fullPath: '/docs/concepts/pidf-terms'
+      preLoaderRoute: typeof DocsConceptsPidfTermsRouteImport
+      parentRoute: typeof DocsRoute
+    }
   }
 }
 
+interface DocsRouteChildren {
+  DocsInstallationRoute: typeof DocsInstallationRoute
+  DocsQuickStartRoute: typeof DocsQuickStartRoute
+  DocsTemplatesRoute: typeof DocsTemplatesRoute
+  DocsIndexRoute: typeof DocsIndexRoute
+  DocsConceptsPidfTermsRoute: typeof DocsConceptsPidfTermsRoute
+  DocsConceptsScoringRoute: typeof DocsConceptsScoringRoute
+  DocsConceptsTuningModesRoute: typeof DocsConceptsTuningModesRoute
+  DocsPositionConfigRoute: typeof DocsPositionConfigRoute
+  DocsPositionDisturbanceRoute: typeof DocsPositionDisturbanceRoute
+  DocsPositionHoldFRoute: typeof DocsPositionHoldFRoute
+  DocsPositionKuSearchRoute: typeof DocsPositionKuSearchRoute
+  DocsPositionOverviewRoute: typeof DocsPositionOverviewRoute
+  DocsPositionRefinementRoute: typeof DocsPositionRefinementRoute
+  DocsReferenceFaqRoute: typeof DocsReferenceFaqRoute
+  DocsReferencePracticalNotesRoute: typeof DocsReferencePracticalNotesRoute
+  DocsReferenceSetupRulesRoute: typeof DocsReferenceSetupRulesRoute
+  DocsReferenceTelemetryRoute: typeof DocsReferenceTelemetryRoute
+  DocsVelocityConfigRoute: typeof DocsVelocityConfigRoute
+  DocsVelocityDisruptionRoute: typeof DocsVelocityDisruptionRoute
+  DocsVelocityFSweepRoute: typeof DocsVelocityFSweepRoute
+  DocsVelocityKuSearchRoute: typeof DocsVelocityKuSearchRoute
+  DocsVelocityOverviewRoute: typeof DocsVelocityOverviewRoute
+  DocsVelocityRefinementRoute: typeof DocsVelocityRefinementRoute
+}
+
+const DocsRouteChildren: DocsRouteChildren = {
+  DocsInstallationRoute: DocsInstallationRoute,
+  DocsQuickStartRoute: DocsQuickStartRoute,
+  DocsTemplatesRoute: DocsTemplatesRoute,
+  DocsIndexRoute: DocsIndexRoute,
+  DocsConceptsPidfTermsRoute: DocsConceptsPidfTermsRoute,
+  DocsConceptsScoringRoute: DocsConceptsScoringRoute,
+  DocsConceptsTuningModesRoute: DocsConceptsTuningModesRoute,
+  DocsPositionConfigRoute: DocsPositionConfigRoute,
+  DocsPositionDisturbanceRoute: DocsPositionDisturbanceRoute,
+  DocsPositionHoldFRoute: DocsPositionHoldFRoute,
+  DocsPositionKuSearchRoute: DocsPositionKuSearchRoute,
+  DocsPositionOverviewRoute: DocsPositionOverviewRoute,
+  DocsPositionRefinementRoute: DocsPositionRefinementRoute,
+  DocsReferenceFaqRoute: DocsReferenceFaqRoute,
+  DocsReferencePracticalNotesRoute: DocsReferencePracticalNotesRoute,
+  DocsReferenceSetupRulesRoute: DocsReferenceSetupRulesRoute,
+  DocsReferenceTelemetryRoute: DocsReferenceTelemetryRoute,
+  DocsVelocityConfigRoute: DocsVelocityConfigRoute,
+  DocsVelocityDisruptionRoute: DocsVelocityDisruptionRoute,
+  DocsVelocityFSweepRoute: DocsVelocityFSweepRoute,
+  DocsVelocityKuSearchRoute: DocsVelocityKuSearchRoute,
+  DocsVelocityOverviewRoute: DocsVelocityOverviewRoute,
+  DocsVelocityRefinementRoute: DocsVelocityRefinementRoute,
+}
+
+const DocsRouteWithChildren = DocsRoute._addFileChildren(DocsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DocsRoute: DocsRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
