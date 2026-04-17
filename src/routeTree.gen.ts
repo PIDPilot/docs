@@ -14,6 +14,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DocsIndexRouteImport } from './routes/docs.index'
 import { Route as DocsQuickStartRouteImport } from './routes/docs.quick-start'
 import { Route as DocsInstallationRouteImport } from './routes/docs.installation'
+import { Route as DocsVelocityRefinementRouteImport } from './routes/docs.velocity.refinement'
+import { Route as DocsVelocityOverviewRouteImport } from './routes/docs.velocity.overview'
+import { Route as DocsVelocityKuSearchRouteImport } from './routes/docs.velocity.ku-search'
+import { Route as DocsVelocityFSweepRouteImport } from './routes/docs.velocity.f-sweep'
+import { Route as DocsVelocityDisruptionRouteImport } from './routes/docs.velocity.disruption'
+import { Route as DocsVelocityConfigRouteImport } from './routes/docs.velocity.config'
 import { Route as DocsConceptsTuningModesRouteImport } from './routes/docs.concepts.tuning-modes'
 import { Route as DocsConceptsScoringRouteImport } from './routes/docs.concepts.scoring'
 import { Route as DocsConceptsPidfTermsRouteImport } from './routes/docs.concepts.pidf-terms'
@@ -43,6 +49,36 @@ const DocsInstallationRoute = DocsInstallationRouteImport.update({
   path: '/installation',
   getParentRoute: () => DocsRoute,
 } as any)
+const DocsVelocityRefinementRoute = DocsVelocityRefinementRouteImport.update({
+  id: '/velocity/refinement',
+  path: '/velocity/refinement',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsVelocityOverviewRoute = DocsVelocityOverviewRouteImport.update({
+  id: '/velocity/overview',
+  path: '/velocity/overview',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsVelocityKuSearchRoute = DocsVelocityKuSearchRouteImport.update({
+  id: '/velocity/ku-search',
+  path: '/velocity/ku-search',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsVelocityFSweepRoute = DocsVelocityFSweepRouteImport.update({
+  id: '/velocity/f-sweep',
+  path: '/velocity/f-sweep',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsVelocityDisruptionRoute = DocsVelocityDisruptionRouteImport.update({
+  id: '/velocity/disruption',
+  path: '/velocity/disruption',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsVelocityConfigRoute = DocsVelocityConfigRouteImport.update({
+  id: '/velocity/config',
+  path: '/velocity/config',
+  getParentRoute: () => DocsRoute,
+} as any)
 const DocsConceptsTuningModesRoute = DocsConceptsTuningModesRouteImport.update({
   id: '/concepts/tuning-modes',
   path: '/concepts/tuning-modes',
@@ -68,6 +104,12 @@ export interface FileRoutesByFullPath {
   '/docs/concepts/pidf-terms': typeof DocsConceptsPidfTermsRoute
   '/docs/concepts/scoring': typeof DocsConceptsScoringRoute
   '/docs/concepts/tuning-modes': typeof DocsConceptsTuningModesRoute
+  '/docs/velocity/config': typeof DocsVelocityConfigRoute
+  '/docs/velocity/disruption': typeof DocsVelocityDisruptionRoute
+  '/docs/velocity/f-sweep': typeof DocsVelocityFSweepRoute
+  '/docs/velocity/ku-search': typeof DocsVelocityKuSearchRoute
+  '/docs/velocity/overview': typeof DocsVelocityOverviewRoute
+  '/docs/velocity/refinement': typeof DocsVelocityRefinementRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -77,6 +119,12 @@ export interface FileRoutesByTo {
   '/docs/concepts/pidf-terms': typeof DocsConceptsPidfTermsRoute
   '/docs/concepts/scoring': typeof DocsConceptsScoringRoute
   '/docs/concepts/tuning-modes': typeof DocsConceptsTuningModesRoute
+  '/docs/velocity/config': typeof DocsVelocityConfigRoute
+  '/docs/velocity/disruption': typeof DocsVelocityDisruptionRoute
+  '/docs/velocity/f-sweep': typeof DocsVelocityFSweepRoute
+  '/docs/velocity/ku-search': typeof DocsVelocityKuSearchRoute
+  '/docs/velocity/overview': typeof DocsVelocityOverviewRoute
+  '/docs/velocity/refinement': typeof DocsVelocityRefinementRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -88,6 +136,12 @@ export interface FileRoutesById {
   '/docs/concepts/pidf-terms': typeof DocsConceptsPidfTermsRoute
   '/docs/concepts/scoring': typeof DocsConceptsScoringRoute
   '/docs/concepts/tuning-modes': typeof DocsConceptsTuningModesRoute
+  '/docs/velocity/config': typeof DocsVelocityConfigRoute
+  '/docs/velocity/disruption': typeof DocsVelocityDisruptionRoute
+  '/docs/velocity/f-sweep': typeof DocsVelocityFSweepRoute
+  '/docs/velocity/ku-search': typeof DocsVelocityKuSearchRoute
+  '/docs/velocity/overview': typeof DocsVelocityOverviewRoute
+  '/docs/velocity/refinement': typeof DocsVelocityRefinementRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -100,6 +154,12 @@ export interface FileRouteTypes {
     | '/docs/concepts/pidf-terms'
     | '/docs/concepts/scoring'
     | '/docs/concepts/tuning-modes'
+    | '/docs/velocity/config'
+    | '/docs/velocity/disruption'
+    | '/docs/velocity/f-sweep'
+    | '/docs/velocity/ku-search'
+    | '/docs/velocity/overview'
+    | '/docs/velocity/refinement'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -109,6 +169,12 @@ export interface FileRouteTypes {
     | '/docs/concepts/pidf-terms'
     | '/docs/concepts/scoring'
     | '/docs/concepts/tuning-modes'
+    | '/docs/velocity/config'
+    | '/docs/velocity/disruption'
+    | '/docs/velocity/f-sweep'
+    | '/docs/velocity/ku-search'
+    | '/docs/velocity/overview'
+    | '/docs/velocity/refinement'
   id:
     | '__root__'
     | '/'
@@ -119,6 +185,12 @@ export interface FileRouteTypes {
     | '/docs/concepts/pidf-terms'
     | '/docs/concepts/scoring'
     | '/docs/concepts/tuning-modes'
+    | '/docs/velocity/config'
+    | '/docs/velocity/disruption'
+    | '/docs/velocity/f-sweep'
+    | '/docs/velocity/ku-search'
+    | '/docs/velocity/overview'
+    | '/docs/velocity/refinement'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -163,6 +235,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DocsInstallationRouteImport
       parentRoute: typeof DocsRoute
     }
+    '/docs/velocity/refinement': {
+      id: '/docs/velocity/refinement'
+      path: '/velocity/refinement'
+      fullPath: '/docs/velocity/refinement'
+      preLoaderRoute: typeof DocsVelocityRefinementRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/velocity/overview': {
+      id: '/docs/velocity/overview'
+      path: '/velocity/overview'
+      fullPath: '/docs/velocity/overview'
+      preLoaderRoute: typeof DocsVelocityOverviewRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/velocity/ku-search': {
+      id: '/docs/velocity/ku-search'
+      path: '/velocity/ku-search'
+      fullPath: '/docs/velocity/ku-search'
+      preLoaderRoute: typeof DocsVelocityKuSearchRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/velocity/f-sweep': {
+      id: '/docs/velocity/f-sweep'
+      path: '/velocity/f-sweep'
+      fullPath: '/docs/velocity/f-sweep'
+      preLoaderRoute: typeof DocsVelocityFSweepRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/velocity/disruption': {
+      id: '/docs/velocity/disruption'
+      path: '/velocity/disruption'
+      fullPath: '/docs/velocity/disruption'
+      preLoaderRoute: typeof DocsVelocityDisruptionRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/velocity/config': {
+      id: '/docs/velocity/config'
+      path: '/velocity/config'
+      fullPath: '/docs/velocity/config'
+      preLoaderRoute: typeof DocsVelocityConfigRouteImport
+      parentRoute: typeof DocsRoute
+    }
     '/docs/concepts/tuning-modes': {
       id: '/docs/concepts/tuning-modes'
       path: '/concepts/tuning-modes'
@@ -194,6 +308,12 @@ interface DocsRouteChildren {
   DocsConceptsPidfTermsRoute: typeof DocsConceptsPidfTermsRoute
   DocsConceptsScoringRoute: typeof DocsConceptsScoringRoute
   DocsConceptsTuningModesRoute: typeof DocsConceptsTuningModesRoute
+  DocsVelocityConfigRoute: typeof DocsVelocityConfigRoute
+  DocsVelocityDisruptionRoute: typeof DocsVelocityDisruptionRoute
+  DocsVelocityFSweepRoute: typeof DocsVelocityFSweepRoute
+  DocsVelocityKuSearchRoute: typeof DocsVelocityKuSearchRoute
+  DocsVelocityOverviewRoute: typeof DocsVelocityOverviewRoute
+  DocsVelocityRefinementRoute: typeof DocsVelocityRefinementRoute
 }
 
 const DocsRouteChildren: DocsRouteChildren = {
@@ -203,6 +323,12 @@ const DocsRouteChildren: DocsRouteChildren = {
   DocsConceptsPidfTermsRoute: DocsConceptsPidfTermsRoute,
   DocsConceptsScoringRoute: DocsConceptsScoringRoute,
   DocsConceptsTuningModesRoute: DocsConceptsTuningModesRoute,
+  DocsVelocityConfigRoute: DocsVelocityConfigRoute,
+  DocsVelocityDisruptionRoute: DocsVelocityDisruptionRoute,
+  DocsVelocityFSweepRoute: DocsVelocityFSweepRoute,
+  DocsVelocityKuSearchRoute: DocsVelocityKuSearchRoute,
+  DocsVelocityOverviewRoute: DocsVelocityOverviewRoute,
+  DocsVelocityRefinementRoute: DocsVelocityRefinementRoute,
 }
 
 const DocsRouteWithChildren = DocsRoute._addFileChildren(DocsRouteChildren)
