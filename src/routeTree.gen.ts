@@ -11,6 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DocsIndexRouteImport } from './routes/docs.index'
+import { Route as DocsQuickStartRouteImport } from './routes/docs.quick-start'
+import { Route as DocsInstallationRouteImport } from './routes/docs.installation'
+import { Route as DocsConceptsTuningModesRouteImport } from './routes/docs.concepts.tuning-modes'
+import { Route as DocsConceptsScoringRouteImport } from './routes/docs.concepts.scoring'
+import { Route as DocsConceptsPidfTermsRouteImport } from './routes/docs.concepts.pidf-terms'
 
 const DocsRoute = DocsRouteImport.update({
   id: '/docs',
@@ -22,31 +28,102 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DocsIndexRoute = DocsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsQuickStartRoute = DocsQuickStartRouteImport.update({
+  id: '/quick-start',
+  path: '/quick-start',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsInstallationRoute = DocsInstallationRouteImport.update({
+  id: '/installation',
+  path: '/installation',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsConceptsTuningModesRoute = DocsConceptsTuningModesRouteImport.update({
+  id: '/concepts/tuning-modes',
+  path: '/concepts/tuning-modes',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsConceptsScoringRoute = DocsConceptsScoringRouteImport.update({
+  id: '/concepts/scoring',
+  path: '/concepts/scoring',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsConceptsPidfTermsRoute = DocsConceptsPidfTermsRouteImport.update({
+  id: '/concepts/pidf-terms',
+  path: '/concepts/pidf-terms',
+  getParentRoute: () => DocsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/docs': typeof DocsRoute
+  '/docs': typeof DocsRouteWithChildren
+  '/docs/installation': typeof DocsInstallationRoute
+  '/docs/quick-start': typeof DocsQuickStartRoute
+  '/docs/': typeof DocsIndexRoute
+  '/docs/concepts/pidf-terms': typeof DocsConceptsPidfTermsRoute
+  '/docs/concepts/scoring': typeof DocsConceptsScoringRoute
+  '/docs/concepts/tuning-modes': typeof DocsConceptsTuningModesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/docs': typeof DocsRoute
+  '/docs/installation': typeof DocsInstallationRoute
+  '/docs/quick-start': typeof DocsQuickStartRoute
+  '/docs': typeof DocsIndexRoute
+  '/docs/concepts/pidf-terms': typeof DocsConceptsPidfTermsRoute
+  '/docs/concepts/scoring': typeof DocsConceptsScoringRoute
+  '/docs/concepts/tuning-modes': typeof DocsConceptsTuningModesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/docs': typeof DocsRoute
+  '/docs': typeof DocsRouteWithChildren
+  '/docs/installation': typeof DocsInstallationRoute
+  '/docs/quick-start': typeof DocsQuickStartRoute
+  '/docs/': typeof DocsIndexRoute
+  '/docs/concepts/pidf-terms': typeof DocsConceptsPidfTermsRoute
+  '/docs/concepts/scoring': typeof DocsConceptsScoringRoute
+  '/docs/concepts/tuning-modes': typeof DocsConceptsTuningModesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/docs'
+  fullPaths:
+    | '/'
+    | '/docs'
+    | '/docs/installation'
+    | '/docs/quick-start'
+    | '/docs/'
+    | '/docs/concepts/pidf-terms'
+    | '/docs/concepts/scoring'
+    | '/docs/concepts/tuning-modes'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/docs'
-  id: '__root__' | '/' | '/docs'
+  to:
+    | '/'
+    | '/docs/installation'
+    | '/docs/quick-start'
+    | '/docs'
+    | '/docs/concepts/pidf-terms'
+    | '/docs/concepts/scoring'
+    | '/docs/concepts/tuning-modes'
+  id:
+    | '__root__'
+    | '/'
+    | '/docs'
+    | '/docs/installation'
+    | '/docs/quick-start'
+    | '/docs/'
+    | '/docs/concepts/pidf-terms'
+    | '/docs/concepts/scoring'
+    | '/docs/concepts/tuning-modes'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DocsRoute: typeof DocsRoute
+  DocsRoute: typeof DocsRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -65,13 +142,84 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/docs/': {
+      id: '/docs/'
+      path: '/'
+      fullPath: '/docs/'
+      preLoaderRoute: typeof DocsIndexRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/quick-start': {
+      id: '/docs/quick-start'
+      path: '/quick-start'
+      fullPath: '/docs/quick-start'
+      preLoaderRoute: typeof DocsQuickStartRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/installation': {
+      id: '/docs/installation'
+      path: '/installation'
+      fullPath: '/docs/installation'
+      preLoaderRoute: typeof DocsInstallationRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/concepts/tuning-modes': {
+      id: '/docs/concepts/tuning-modes'
+      path: '/concepts/tuning-modes'
+      fullPath: '/docs/concepts/tuning-modes'
+      preLoaderRoute: typeof DocsConceptsTuningModesRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/concepts/scoring': {
+      id: '/docs/concepts/scoring'
+      path: '/concepts/scoring'
+      fullPath: '/docs/concepts/scoring'
+      preLoaderRoute: typeof DocsConceptsScoringRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/concepts/pidf-terms': {
+      id: '/docs/concepts/pidf-terms'
+      path: '/concepts/pidf-terms'
+      fullPath: '/docs/concepts/pidf-terms'
+      preLoaderRoute: typeof DocsConceptsPidfTermsRouteImport
+      parentRoute: typeof DocsRoute
+    }
   }
 }
 
+interface DocsRouteChildren {
+  DocsInstallationRoute: typeof DocsInstallationRoute
+  DocsQuickStartRoute: typeof DocsQuickStartRoute
+  DocsIndexRoute: typeof DocsIndexRoute
+  DocsConceptsPidfTermsRoute: typeof DocsConceptsPidfTermsRoute
+  DocsConceptsScoringRoute: typeof DocsConceptsScoringRoute
+  DocsConceptsTuningModesRoute: typeof DocsConceptsTuningModesRoute
+}
+
+const DocsRouteChildren: DocsRouteChildren = {
+  DocsInstallationRoute: DocsInstallationRoute,
+  DocsQuickStartRoute: DocsQuickStartRoute,
+  DocsIndexRoute: DocsIndexRoute,
+  DocsConceptsPidfTermsRoute: DocsConceptsPidfTermsRoute,
+  DocsConceptsScoringRoute: DocsConceptsScoringRoute,
+  DocsConceptsTuningModesRoute: DocsConceptsTuningModesRoute,
+}
+
+const DocsRouteWithChildren = DocsRoute._addFileChildren(DocsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DocsRoute: DocsRoute,
+  DocsRoute: DocsRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
