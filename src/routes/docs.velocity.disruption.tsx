@@ -1,11 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { CodeBlock } from "@/components/CodeBlock";
 
 export const Route = createFileRoute("/docs/velocity/disruption")({
   head: () => ({
     meta: [
-      { title: "Velocity Phase 4 — Disruption — PID Pilot" },
-      { name: "description", content: "Disturbance recovery scoring in MAINTAIN mode." },
+      { title: "Velocity Disruption Sampling — PID Pilot" },
+      {
+        name: "description",
+        content:
+          "How the velocity tuner measures disturbance recovery when MAINTAIN behavior matters more than raw spin-up.",
+      },
     ],
   }),
   component: Page,
@@ -14,61 +17,87 @@ export const Route = createFileRoute("/docs/velocity/disruption")({
 function Page() {
   return (
     <>
-      <h1>Phase 4 — Disruption</h1>
+      <h1>Disruption Sampling</h1>
       <p>
-        The disruption phase only runs when <strong>all three</strong> conditions are
-        true:
+        The velocity tuner includes a second state machine dedicated to measuring recovery after a
+        real disturbance. This matters because a flywheel that looks good on a clean step response
+        can still perform badly once game pieces start loading it.
       </p>
+
+      <h2>Disruption stages</h2>
       <ul>
-        <li><code>tuningMode = MAINTAIN</code></li>
-        <li>You used <code>withRunUsingEncoderVelocityMotors(...)</code></li>
-        <li><code>runDisruptionPhase</code> is <code>true</code> (default)</li>
+        <li>
+          <code>WAITING</code>
+        </li>
+        <li>
+          <code>ARMED</code>
+        </li>
+        <li>
+          <code>DETECTING</code>
+        </li>
+        <li>
+          <code>RECOVERING</code>
+        </li>
+        <li>
+          <code>COMPLETE</code>
+        </li>
       </ul>
 
-      <h2>What it measures</h2>
+      <h2>What the phase measures</h2>
       <ol>
-        <li>Wait until velocity is stably near target (within{" "}
-          <code>disruptionReadyBandPct</code> for{" "}
-          <code>disruptionReadyStableMs</code>)</li>
-        <li>Apply a short open-loop braking disturbance:{" "}
-          <code>setPower(-maintainDisturbancePower)</code> for{" "}
-          <code>maintainDisturbanceMs</code></li>
-        <li>Restore closed-loop velocity control</li>
-        <li>Measure the largest velocity drop and the time to recover into the ready band</li>
-        <li>Repeat for <code>disruptionSamples</code> events (default 5)</li>
+        <li>Wait for the mechanism to be stably near target.</li>
+        <li>Detect or apply a disturbance depending on the configured workflow.</li>
+        <li>Measure how far velocity drops.</li>
+        <li>Measure how long it takes to recover into the ready band.</li>
+        <li>Repeat until the requested number of samples is collected.</li>
       </ol>
 
-      <h2>The disruption cost</h2>
-      <CodeBlock
-        language="text"
-        code={`disruptionCost = wDisruptionRecovery * avgRecoveryMs
-              + wDisruptionDip      * avgDropPct
+      <h2>Configuration knobs</h2>
+      <ul>
+        <li>
+          <code>runDisruptionPhase(boolean)</code>
+        </li>
+        <li>
+          <code>disruptionSamples(int)</code>
+        </li>
+        <li>
+          <code>disruptionReadyStableMs(long)</code>
+        </li>
+        <li>
+          <code>disruptionDetectTimeoutMs(long)</code>
+        </li>
+        <li>
+          <code>disruptionRecoveryTimeoutMs(long)</code>
+        </li>
+        <li>
+          <code>disruptionReadyBandPct(double)</code>
+        </li>
+        <li>
+          <code>disruptionDropThresholdPct(double)</code>
+        </li>
+      </ul>
 
-totalCost = stepCost + disruptionCost`}
-      />
-
+      <h2>Why it belongs in MAINTAIN</h2>
       <p>
-        Defaults are <code>wDisruptionRecovery = 0.002</code> and{" "}
-        <code>wDisruptionDip = 1.2</code>. The phase contributes to candidate scoring, so
-        the final PIDF is chosen partly by how well it fights off a slowdown — not just by
-        how fast it revs up.
+        <code>MAINTAIN</code> is the controller personality you care about once the mechanism is
+        already near target and outside forces start pushing it around. Disruption telemetry is the
+        framework’s way of quantifying that job instead of assuming a clean spin-up tells the whole
+        story.
       </p>
 
-      <h2>Skipping</h2>
-      <p>
-        If the mechanism never enters the ready band within{" "}
-        <code>disruptionDetectTimeoutMs</code>, the disruption phase marks itself{" "}
-        <code>skipped</code> and the result reports{" "}
-        <code>disruption=skipped</code>. That usually means the chosen target is too high
-        to hold under your motor.
-      </p>
+      <h2>What shows up in telemetry</h2>
+      <ul>
+        <li>Recovery timing</li>
+        <li>Drop magnitude</li>
+        <li>Sample counts and completion status</li>
+        <li>Instructional notes about when the mechanism is ready for the next disturbance</li>
+      </ul>
 
-      <h2>Worst-case metrics</h2>
-      <p>
-        The result also includes the <em>worst</em> recovery time and dip across all
-        sampled disturbances, not just the average. That helps you spot mechanisms that
-        recover well on average but occasionally take much longer.
-      </p>
+      <blockquote>
+        If a shooter must survive repeated loading, a fast <code>REV_UP</code> result alone is not
+        enough. Use disruption recovery to decide whether the hold-side gain family is the one you
+        should ship.
+      </blockquote>
     </>
   );
 }

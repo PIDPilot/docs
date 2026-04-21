@@ -4,7 +4,11 @@ export const Route = createFileRoute("/docs/concepts/tuning-modes")({
   head: () => ({
     meta: [
       { title: "Tuning Modes — PID Pilot" },
-      { name: "description", content: "REV_UP vs MAINTAIN tuning modes in PID Pilot." },
+      {
+        name: "description",
+        content:
+          "How PID Pilot uses REV_UP and MAINTAIN as separate controller personalities with separate gains.",
+      },
     ],
   }),
   component: Page,
@@ -15,65 +19,84 @@ function Page() {
     <>
       <h1>Tuning Modes</h1>
       <p>
-        Both tuners support two tuning modes selected via <code>PIDFTuningMode</code>.
-        Mode changes the cost-function weights and decides whether the disturbance phase
-        runs.
+        <code>PIDFTuningMode</code> is a small enum with a large role in the framework. It gives the
+        entire package a shared language for two different controller personalities: one focused on
+        getting there quickly and one focused on holding accurately under disturbances.
       </p>
 
       <h2>REV_UP</h2>
-      <p>
-        Favors getting to the target quickly. Keeps more weight on fast response and
-        overshoot control.
-      </p>
       <ul>
-        <li>Higher overshoot weight</li>
-        <li>Lower steady-state error weight</li>
-        <li>No disturbance phase</li>
-        <li>May accept more overshoot if it gets there faster</li>
+        <li>Prioritizes fast approach to the target.</li>
+        <li>Often uses little or no integral.</li>
+        <li>May use motion profiling in the position tuner.</li>
+        <li>Can accept some overshoot if that buys better approach speed.</li>
       </ul>
 
       <h2>MAINTAIN</h2>
-      <p>
-        Favors staying at the target and recovering well from disturbances. Reduces the
-        importance of overshoot and increases the penalty on settling time and
-        steady-state error. Adds a disturbance-recovery test into scoring.
-      </p>
       <ul>
-        <li>Higher steady-state error weight</li>
-        <li>Higher settling weight</li>
-        <li>Adds disturbance recovery and dip into the cost</li>
-        <li>Explores <code>I</code> more aggressively (long-term error matters more)</li>
+        <li>Prioritizes low steady-state error and disturbance rejection.</li>
+        <li>Commonly benefits from integral action.</li>
+        <li>Is the mode used for disruption sampling.</li>
+        <li>
+          Represents the controller personality you care about once the mechanism is near target.
+        </li>
       </ul>
 
-      <h2>Choosing</h2>
+      <h2>Why the framework keeps two gain sets</h2>
+      <p>
+        The package does not pretend that approach behavior and hold behavior are the same control
+        problem. Both tuners keep separate gain sets so a team can tune the personality it actually
+        needs instead of forcing one compromise set to cover everything.
+      </p>
+
+      <h2>How teams switch modes live</h2>
+      <p>
+        The base runner handles mode toggling with <code>gamepad1.x</code>. When the mode changes,
+        the active tuner swaps gain families and resets state where stale controller memory would be
+        misleading.
+      </p>
+
+      <h2>Where the effect differs by tuner</h2>
       <table>
         <thead>
           <tr>
-            <th>Use case</th>
-            <th>Mode</th>
+            <th>Area</th>
+            <th>REV_UP emphasis</th>
+            <th>MAINTAIN emphasis</th>
           </tr>
         </thead>
         <tbody>
-          <tr><td>Flywheel that fires while spinning</td><td><code>MAINTAIN</code></td></tr>
-          <tr><td>One-shot launcher, no continuous load</td><td><code>REV_UP</code></td></tr>
-          <tr><td>Arm that holds against gravity</td><td><code>MAINTAIN</code></td></tr>
-          <tr><td>Slide that snaps to a target then locks</td><td><code>MAINTAIN</code></td></tr>
-          <tr><td>Quick reposition without external load</td><td><code>REV_UP</code></td></tr>
+          <tr>
+            <td>Velocity tuner</td>
+            <td>Fast approach and cleaner rev-up behavior</td>
+            <td>Robust speed hold and disruption recovery</td>
+          </tr>
+          <tr>
+            <td>Position tuner</td>
+            <td>Approach behavior, often with motion profiling</td>
+            <td>Holding behavior and load rejection near target</td>
+          </tr>
+          <tr>
+            <td>Integral usage</td>
+            <td>Often low or zero</td>
+            <td>Commonly more useful</td>
+          </tr>
         </tbody>
       </table>
 
-      <p>
-        If your mechanism's real job is to <em>resist changing load</em>, use{" "}
-        <code>MAINTAIN</code>. If it's to <em>get up to speed or position as fast as
-        possible</em> and hold quality matters less, use <code>REV_UP</code>.
-      </p>
-
-      <h2>Why the same mechanism gives different gains per mode</h2>
-      <p>
-        <code>REV_UP</code> and <code>MAINTAIN</code> can legitimately produce different
-        PIDF values for the same mechanism. That's expected — they're optimizing different
-        things.
-      </p>
+      <h2>Practical guidance</h2>
+      <ul>
+        <li>
+          Use <code>REV_UP</code> when arrival speed is the main job.
+        </li>
+        <li>
+          Use <code>MAINTAIN</code> when resisting changing load is the main job.
+        </li>
+        <li>
+          Expect the same mechanism to produce different valid gains in each mode. That is normal,
+          not a bug.
+        </li>
+      </ul>
     </>
   );
 }

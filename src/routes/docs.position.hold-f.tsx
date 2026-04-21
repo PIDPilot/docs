@@ -1,11 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { CodeBlock } from "@/components/CodeBlock";
 
 export const Route = createFileRoute("/docs/position/hold-f")({
   head: () => ({
     meta: [
-      { title: "Position Phase 1 — Hold F Search — PID Pilot" },
-      { name: "description", content: "How PID Pilot finds the holding feedforward for position tuning." },
+      { title: "Position Actuator & Feedback Modes — PID Pilot" },
+      {
+        name: "description",
+        content:
+          "How PositionPIDFTuner supports motors, CR servos, standard servos, and multiple feedback sources.",
+      },
     ],
   }),
   component: Page,
@@ -14,56 +17,92 @@ export const Route = createFileRoute("/docs/position/hold-f")({
 function Page() {
   return (
     <>
-      <h1>Phase 1 — Hold F Search</h1>
+      <h1>Actuator &amp; Feedback Modes</h1>
       <p>
-        For position-controlled mechanisms, <code>F</code> represents the feedforward
-        power needed to <strong>hold</strong> the mechanism at the target — typically the
-        constant power needed to fight gravity on an arm or slide.
+        The position tuner is effectively a multi-backend position-control framework. The actuator
+        family determines how commands are written, how measurements are read, and whether a true
+        closed-loop position controller exists at all.
       </p>
 
-      <h2>Algorithm</h2>
-      <ol>
-        <li>Drive to the target with a moderate power (<code>0.4</code>)</li>
-        <li>Apply a small initial hold power (<code>fHoldPower = 0.05</code>)</li>
-        <li>Wait <code>fHoldSettleMs</code> (600 ms)</li>
-        <li>Sample position before, wait 200 ms, sample position after</li>
-        <li>If drift &lt; <code>fHoldTolerance</code> (20 ticks), accept this hold power as F</li>
-        <li>Otherwise, increase hold power by 0.01 and retry</li>
-      </ol>
-
-      <p>
-        The loop runs up to 20 attempts. If it never finds a hold power below{" "}
-        <code>maxPower</code>, it falls back to <code>maxPower * 0.3</code> as a safe
-        default.
-      </p>
-
-      <h2>Telemetry during this phase</h2>
-      <CodeBlock
-        language="text"
-        code={`f search power      0.0800
-position drift      36.4 ticks
-f search power      0.0900
-position drift      18.2 ticks    <- accepted, F = 0.0900`}
-      />
-
-      <h2>Why this matters</h2>
-      <p>
-        Without a holding F, the integral term has to slowly accumulate enough output to
-        fight gravity, which causes a slow steady-state error and a sluggish hold. With a
-        good F, P and I only need to handle <em>deviations</em> from the target — they
-        start the work already mostly done.
-      </p>
-
-      <h2>Tunable knobs</h2>
+      <h2>Actuator modes</h2>
       <table>
-        <thead><tr><th>Config</th><th>Default</th><th>Effect</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Mode</th>
+            <th>What it means</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr><td><code>fHoldPower</code></td><td>0.05</td><td>Starting hold power</td></tr>
-          <tr><td><code>fHoldTolerance</code></td><td>20 ticks</td><td>Acceptable drift over 200 ms</td></tr>
-          <tr><td><code>fHoldSettleMs</code></td><td>600 ms</td><td>Settle before measuring drift</td></tr>
-          <tr><td><code>maxPower</code></td><td>0.7</td><td>Cap on any commanded output</td></tr>
+          <tr>
+            <td>
+              <code>MOTOR</code>
+            </td>
+            <td>DC motor position control using encoder feedback and power output</td>
+          </tr>
+          <tr>
+            <td>
+              <code>SERVO_OPEN_LOOP</code>
+            </td>
+            <td>Direct target-to-servo-position mapping with no PID correction</td>
+          </tr>
+          <tr>
+            <td>
+              <code>SERVO_WITH_EXTERNAL_ENCODER</code>
+            </td>
+            <td>Standard servo with external feedback and PID correction layered on top</td>
+          </tr>
+          <tr>
+            <td>
+              <code>CR_SERVO</code>
+            </td>
+            <td>Continuous-rotation servo driven from encoder feedback and scaled power output</td>
+          </tr>
         </tbody>
       </table>
+
+      <h2>Feedback modes for standard servos</h2>
+      <ul>
+        <li>
+          <code>NONE</code> for open-loop mapping only
+        </li>
+        <li>
+          <code>MOTOR_ENCODER</code> when an external encoder motor supplies position
+        </li>
+        <li>
+          <code>ANALOG_INPUT</code> when an analog sensor provides the feedback signal
+        </li>
+      </ul>
+
+      <h2>Standard servo open-loop behavior</h2>
+      <p>
+        Open-loop standard servo mode is intentionally simple. There is no PID correction and no
+        disruption logic. The target is mapped directly into servo position space, and the tuner
+        forces <code>isAtTarget()</code> to report true because there is no real feedback loop to
+        qualify.
+      </p>
+
+      <h2>Standard servo closed-loop behavior</h2>
+      <p>
+        Closed-loop standard servo mode blends a direct servo-position mapping with an external PID
+        correction. The tuner maps the requested target to a base servo position, computes a
+        correction in normalized position space, adds feedforward, and clamps the final command back
+        into <code>[0.0, 1.0]</code>.
+      </p>
+
+      <h2>CR servo behavior</h2>
+      <p>
+        CR servos behave more like motors: the tuner uses encoder feedback to estimate position and
+        writes scaled power through <code>servoOutputScale</code>. This lets the framework keep one
+        consistent tuning model while still respecting how the actuator is commanded physically.
+      </p>
+
+      <h2>Why this abstraction matters</h2>
+      <p>
+        Teams do not need separate tuning frameworks for every actuator family. They need one
+        framework that changes its hardware semantics without changing its overall workflow:
+        configure, run live, inspect telemetry, and decide whether the mechanism is behaving for the
+        right reasons.
+      </p>
     </>
   );
 }

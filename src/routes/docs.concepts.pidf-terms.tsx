@@ -3,8 +3,12 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/docs/concepts/pidf-terms")({
   head: () => ({
     meta: [
-      { title: "PIDF Terms — PID Pilot" },
-      { name: "description", content: "What P, I, D, and F do in a PIDF controller." },
+      { title: "Shared Concepts — PID Pilot" },
+      {
+        name: "description",
+        content:
+          "Shared control concepts in PID Pilot: feedforward vs feedback, Dashboard-driven config, telemetry, and controller internals.",
+      },
     ],
   }),
   component: Page,
@@ -13,56 +17,89 @@ export const Route = createFileRoute("/docs/concepts/pidf-terms")({
 function Page() {
   return (
     <>
-      <h1>PIDF Terms</h1>
+      <h1>Shared Concepts</h1>
       <p>
-        Before reading the rest of the docs, it helps to have a one-line definition of
-        each PIDF term in front of you.
+        Before you dive into the individual tuners, it helps to understand the common ideas the
+        framework is built around. These concepts explain why the package has the class structure it
+        does and why the telemetry is so detailed.
       </p>
 
-      <h2>P — Proportional</h2>
-      <p>
-        Reacts to the <strong>current error</strong>. Bigger error → bigger correction.
-        Too much <code>P</code> causes oscillation around the target.
-      </p>
-
-      <h2>I — Integral</h2>
-      <p>
-        Reacts to <strong>accumulated error over time</strong>. <code>I</code> is what
-        kills steady-state error and helps a mechanism hold target under continuous load.
-      </p>
-      <p>
-        Too much <code>I</code> causes wind-up: the mechanism overshoots and takes a long
-        time to settle. PID Pilot explores <code>I</code> more aggressively in{" "}
-        <code>MAINTAIN</code> mode because that's where it pays off.
-      </p>
-
-      <h2>D — Derivative</h2>
-      <p>
-        Reacts to <strong>how fast the error is changing</strong>. <code>D</code> dampens
-        the response and reduces overshoot. Too much <code>D</code> makes the mechanism
-        noisy or unstable, since it amplifies sensor noise.
-      </p>
-
-      <h2>F — Feedforward</h2>
-      <p>
-        A predicted, open-loop term added to the controller output. It represents the
-        effort the mechanism needs <em>just to do its job</em> — fight gravity, spin at
-        speed — before any feedback correction.
-      </p>
-      <p>
-        A good <code>F</code> means <code>P</code> and <code>I</code> have less work to
-        do. PID Pilot estimates <code>F</code> first, before searching for <code>P</code>,{" "}
-        <code>I</code>, and <code>D</code>.
-      </p>
-
-      <h2>Rules of thumb</h2>
+      <h2>Where P, I, D, and F fit</h2>
       <ul>
-        <li><code>F</code> should handle most of the constant load.</li>
-        <li><code>P</code> should correct immediate error.</li>
-        <li><code>I</code> usually helps most with maintain behavior and long-term error.</li>
-        <li>Too much <code>I</code> can make recovery slower or cause oscillation.</li>
-        <li>Too much <code>D</code> can make the mechanism noisy.</li>
+        <li>
+          <strong>P</strong> reacts to current error and provides the immediate corrective push.
+        </li>
+        <li>
+          <strong>I</strong> reacts to accumulated error over time and is most valuable when hold
+          quality and steady-state accuracy matter.
+        </li>
+        <li>
+          <strong>D</strong> damps the response and in PID Pilot is based on measurement change, not
+          direct error difference.
+        </li>
+        <li>
+          <strong>F</strong> is not one universal idea: in velocity it is a physical feedforward,
+          while in position it is a static trim or friction-help term.
+        </li>
       </ul>
+
+      <h2>Feedforward vs feedback</h2>
+      <p>
+        The package works hard to keep these jobs distinct. Feedforward supplies the expected
+        baseline effort. PID handles the leftover error. This matters because a team can only debug
+        the controller rationally if it knows whether the mechanism is failing due to a missing
+        baseline effort or due to bad feedback behavior.
+      </p>
+
+      <ul>
+        <li>
+          Velocity <code>kF</code> is motor power per <code>ticks/s</code> and is meant to be
+          physically interpretable.
+        </li>
+        <li>
+          Position <code>kF</code> is static trim. Gravity constant and cosine compensation are
+          separate terms because they represent different physics.
+        </li>
+      </ul>
+
+      <h2>Dashboard-driven configuration</h2>
+      <p>
+        PID Pilot is not based on static startup configuration only. The base OpMode calls{" "}
+        <code>configureVelocity()</code> or <code>configurePosition()</code> every loop, so changes
+        made in FTC Dashboard take effect immediately. That is why the tuners must reassert key
+        hardware assumptions during refresh, such as velocity mode ownership.
+      </p>
+
+      <h2>Telemetry is a diagnostic surface</h2>
+      <p>
+        The framework exposes more than target, measurement, and error. It publishes controller
+        terms, filtered derivatives, feedforward breakdowns, relay metrics, disruption summaries,
+        warnings, and copyable gain summaries because teams need to know <em>why</em> the loop
+        behaves the way it does.
+      </p>
+
+      <h2>Derivative on measurement</h2>
+      <p>
+        <code>PIDFController</code> computes derivative from the measurement rather than from direct
+        error difference. That avoids derivative kick when the setpoint changes suddenly, which is
+        common in FTC because many commands are step changes.
+      </p>
+
+      <h2>Controller state is intentionally exposed</h2>
+      <p>
+        The controller stores things like integral memory, measurement rate, filtered measurement
+        rate, term contributions, last error, and last output. The tuners reuse that state directly
+        for telemetry instead of re-deriving it elsewhere. This is part of why the framework can
+        explain controller behavior so clearly.
+      </p>
+
+      <h2>Accumulator units matter</h2>
+      <p>
+        When integral is clamped, the controller clamps the stored accumulator rather than only the
+        final <code>iTerm</code>. That keeps the cap tied to error history. The tuners can then
+        derive that cap from actuator headroom while still reasoning about the stored state
+        correctly.
+      </p>
     </>
   );
 }

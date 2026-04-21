@@ -4,8 +4,12 @@ import { CodeBlock } from "@/components/CodeBlock";
 export const Route = createFileRoute("/docs/position/refinement")({
   head: () => ({
     meta: [
-      { title: "Position Phase 3 — Step Refinement — PID Pilot" },
-      { name: "description", content: "Score-driven candidate refinement for position PIDF." },
+      { title: "Position Bounds & Control Flow — PID Pilot" },
+      {
+        name: "description",
+        content:
+          "How PositionPIDFTuner applies bounds, qualifies at-target state, and executes its closed-loop update path.",
+      },
     ],
   }),
   component: Page,
@@ -14,58 +18,70 @@ export const Route = createFileRoute("/docs/position/refinement")({
 function Page() {
   return (
     <>
-      <h1>Phase 3 — Step Refinement</h1>
+      <h1>Bounds &amp; Control Flow</h1>
       <p>
-        The tuner runs a step from zero toward the target with each candidate PIDF and
-        records:
+        The position tuner’s control loop includes more than PID and feedforward. It has to manage
+        actuator-specific writes, target clamping, at-target qualification, and protection against
+        continued outward drive at hard stops.
       </p>
-      <ul>
-        <li><strong>Overshoot ticks</strong> — peak position past the target</li>
-        <li><strong>Settling time</strong> — time to stay inside the settling band</li>
-        <li><strong>Steady-state error</strong> — average error after settling</li>
-      </ul>
 
-      <h2>The cost</h2>
+      <h2>Closed-loop update flow</h2>
       <CodeBlock
         language="text"
-        code={`cost = wOvershoot * overshootTicks
-     + wSettling  * settlingMs
-     + wSsError   * ssError`}
+        code={`handle SERVO_OPEN_LOOP separately if needed
+read feedback position
+update motion profile
+apply active gains
+normalize target and measurement
+compute PID output
+compute feedforward
+apply actuator-specific output
+update at-target counter
+update disruption phase
+push telemetry`}
       />
 
+      <h2>Hard position constraints</h2>
       <p>
-        Defaults are <code>wOvershoot=2.0</code>, <code>wSettling=0.002</code>,{" "}
-        <code>wSsError=3.0</code>. <code>MAINTAIN</code> mode increases settling and
-        ss-error weights and softens overshoot weight.
+        <code>positionBounds(minTicks, maxTicks)</code> does two jobs. First, it clamps the
+        requested target into a safe range. Second, if the mechanism is already at a hard limit, it
+        suppresses any additional outward command so the controller does not keep pushing into the
+        stop.
       </p>
 
-      <h2>Settling band</h2>
+      <h2>Why target clamping alone is not enough</h2>
       <p>
-        Position is "settled" when it stays within <code>settlingBandTicks</code> of the
-        target. Default is 25 ticks — tighten this for precision mechanisms.
+        If the actuator is already against a hard stop, a controller can still compute an outward
+        command even when the requested target was clamped. The framework explicitly blocks that
+        behavior because otherwise the mechanism can keep loading the stop and damage itself.
       </p>
 
-      <h2>The candidate loop</h2>
-      <ol>
-        <li>Score the current best PIDF with a step response</li>
-        <li>For each of P, I, D, F: try <code>+ nudge</code> and <code>- nudge</code></li>
-        <li>Return to zero between candidates so tests are fair</li>
-        <li>Adopt any candidate that scores better</li>
-        <li>If a full pass found nothing, halve the nudge size</li>
-        <li>Stop when nudge ≤ <code>nudgeMin</code> or after <code>maxIterations</code></li>
-      </ol>
-
+      <h2>At-target qualification</h2>
       <p>
-        Default nudge starts at <code>0.12</code> and floors at <code>0.004</code>.
-        Maximum iterations defaults to 14.
+        The tuner does not declare victory from one lucky loop. It requires several consecutive
+        in-band loops before <code>isAtTarget()</code> becomes true:
       </p>
 
-      <h2>Early termination</h2>
+      <CodeBlock language="text" code={`REQUIRED_AT_TARGET_LOOPS = 5`} />
+
       <p>
-        If overshoot ≤ <code>overshootThreshold</code> (30 ticks) <em>and</em>{" "}
-        steady-state error ≤ <code>ssErrorThreshold</code> (15 ticks), the tuner can exit
-        the refinement loop early.
+        This reduces false success caused by noise, backlash, or a transient crossing through the
+        tolerance band.
       </p>
+
+      <h2>Telemetry that matters here</h2>
+      <ul>
+        <li>Requested target versus clamped target</li>
+        <li>Profiled target, velocity, and acceleration</li>
+        <li>Measured position and actuator command</li>
+        <li>Constraint status and current bound values</li>
+        <li>At-target qualification state</li>
+      </ul>
+
+      <blockquote>
+        When a position session looks unsafe, check bounds and actuator selection before you touch
+        gains. A wrong actuator mode or missing hard stop is a setup problem, not a tuning problem.
+      </blockquote>
     </>
   );
 }

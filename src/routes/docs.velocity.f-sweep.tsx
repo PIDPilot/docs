@@ -4,8 +4,12 @@ import { CodeBlock } from "@/components/CodeBlock";
 export const Route = createFileRoute("/docs/velocity/f-sweep")({
   head: () => ({
     meta: [
-      { title: "Velocity Phase 1 — F Sweep — PID Pilot" },
-      { name: "description", content: "How PID Pilot estimates the F term for velocity tuning." },
+      { title: "Velocity Characterization & Feedforward — PID Pilot" },
+      {
+        name: "description",
+        content:
+          "How VelocityPIDFTuner characterizes max velocity, computes physical kF, and chooses a feedforward source.",
+      },
     ],
   }),
   component: Page,
@@ -14,74 +18,86 @@ export const Route = createFileRoute("/docs/velocity/f-sweep")({
 function Page() {
   return (
     <>
-      <h1>Phase 1 — F Sweep</h1>
+      <h1>Characterization &amp; Feedforward</h1>
       <p>
-        First, the tuner estimates a feedforward <code>F</code> that already puts the
-        mechanism close to the target. That reduces how much <code>P</code> and{" "}
-        <code>I</code> need to do during refinement.
+        The velocity tuner begins by trying to establish a believable physical feedforward. This is
+        one of the most important design choices in the framework because good velocity control gets
+        dramatically easier once the loop stops asking PID to supply the entire baseline effort.
       </p>
 
-      <h2>RUN_USING_ENCODER path</h2>
+      <h2>Startup characterization</h2>
       <p>
-        When you configured the tuner with{" "}
-        <code>withRunUsingEncoderVelocityMotors(...)</code>:
-      </p>
-      <ol>
-        <li>Switches motors to <code>RUN_WITHOUT_ENCODER</code></li>
-        <li>Drives at <code>setPower(1.0)</code></li>
-        <li>Lets the mechanism settle for <code>fullPowerSettleMs</code></li>
-        <li>Averages velocity samples for <code>fullPowerCharacterizeMs</code></li>
-        <li>Restores <code>RUN_USING_ENCODER</code></li>
-      </ol>
-
-      <p>
-        F is then estimated as:
-      </p>
-      <CodeBlock language="text" code={`F = 32767 / averageMaxVelocity`} />
-
-      <p>
-        <code>32767</code> is the SDK's full-scale internal velocity command, so this
-        gives the feedforward needed to ask for full speed.
+        During <strong>CHARACTERIZING</strong>, the tuner drives the mechanism at full power,
+        samples the final portion of the run, estimates max steady-state velocity, and computes:
       </p>
 
-      <h2>Power-mode path</h2>
+      <CodeBlock language="text" code={`kF = 1 / maxVelocity`} />
+
       <p>
-        When you configured with <code>withMotor(...)</code> on a motor in{" "}
-        <code>RUN_WITHOUT_ENCODER</code>, the tuner sweeps power upward in{" "}
-        <code>fSweepSteps</code> increments. At each step it waits{" "}
-        <code>fSweepSettleMs</code>, then samples velocity.
-      </p>
-      <p>
-        It then fits a best-fit feedforward slope from the (power, velocity) pairs:
-      </p>
-      <CodeBlock
-        language="text"
-        code={`F = sum(power * velocity) / sum(velocity * velocity)`}
-      />
-      <p>
-        Samples below 50 ticks/sec are dropped to avoid contaminating the fit with the
-        low-power dead zone. If no samples make it through, F falls back to{" "}
-        <code>0.00017</code>.
+        In this framework, that is a real physical feedforward in motor power per{" "}
+        <code>ticks/s</code>. The point is to tell the controller how much output the mechanism
+        usually needs just to maintain a target speed.
       </p>
 
-      <h2>Telemetry during this phase</h2>
-      <CodeBlock
-        language="text"
-        code={`f sweep        7/15
-power          0.47
-velocity       1284.3`}
-      />
+      <h2>Why the tuner pauses after characterization</h2>
+      <p>
+        The <strong>SETTLING</strong> phase immediately follows characterization. Output is driven
+        to zero, controller memory is cleared, and the tuner pauses briefly so the next phase starts
+        from a clean state instead of inheriting momentum and stale integrator history from full
+        power operation.
+      </p>
 
-      <h2>Tunable knobs</h2>
-      <table>
-        <thead><tr><th>Config</th><th>Default</th><th>Effect</th></tr></thead>
-        <tbody>
-          <tr><td><code>fSweepSteps</code></td><td>15</td><td>How many power increments in power-mode</td></tr>
-          <tr><td><code>fSweepSettleMs</code></td><td>600 ms</td><td>Settle time per step</td></tr>
-          <tr><td><code>fullPowerCharacterizeMs</code></td><td>1200 ms</td><td>Sampling window in encoder mode</td></tr>
-          <tr><td><code>fullPowerSettleMs</code></td><td>500 ms</td><td>Pre-sample settle in encoder mode</td></tr>
-        </tbody>
-      </table>
+      <h2>Feedforward can come from multiple sources</h2>
+      <ul>
+        <li>
+          A newly characterized physical <code>kF</code>.
+        </li>
+        <li>
+          A manual value provided through <code>skipCharacterization(manualKF)</code>.
+        </li>
+        <li>
+          A nonzero <code>kF</code> embedded directly in the active gain set.
+        </li>
+      </ul>
+
+      <p>
+        The tuner treats feedforward selection and phase routing as related but not identical. Once
+        relay tuning or running control is already active, changing which feedforward source is
+        available should not destroy the current state machine.
+      </p>
+
+      <h2>Methods behind the routing</h2>
+      <ul>
+        <li>
+          <code>resolveActivePhysicalKf()</code> chooses the current physical source.
+        </li>
+        <li>
+          <code>resolveModePhysicalKf(...)</code> checks the gain family currently in use.
+        </li>
+        <li>
+          <code>usesManualKf()</code> and <code>usesConfiguredGainKf()</code> explain why a source
+          won.
+        </li>
+        <li>
+          <code>syncFeedforwardMode()</code> keeps phase logic coherent while sources change.
+        </li>
+      </ul>
+
+      <h2>What to watch in telemetry</h2>
+      <ul>
+        <li>
+          The estimated max velocity and characterized <code>kF</code>.
+        </li>
+        <li>
+          Whether the tuner says it is using a manual or configured gain-set <code>kF</code>.
+        </li>
+        <li>Any warning that feedforward already consumes too much output headroom.</li>
+      </ul>
+
+      <blockquote>
+        If the characterized <code>kF</code> looks physically unreasonable, stop there. Do not try
+        to “save” the session by adding more P or I on top of a bad baseline effort estimate.
+      </blockquote>
     </>
   );
 }

@@ -1,5 +1,11 @@
 export type DocLink = { title: string; to: string };
-export type DocSection = { title: string; links: DocLink[] };
+export type DocLinkGroup = { title: string; links: DocLink[] };
+export type DocNavItem = DocLink | DocLinkGroup;
+export type DocSection = { title: string; links: DocNavItem[] };
+
+export function isDocLinkGroup(item: DocNavItem): item is DocLinkGroup {
+  return "links" in item;
+}
 
 export const docsNav: DocSection[] = [
   {
@@ -7,25 +13,31 @@ export const docsNav: DocSection[] = [
     links: [
       { title: "Introduction", to: "/docs" },
       { title: "Installation", to: "/docs/installation" },
-      { title: "Quick Start", to: "/docs/quick-start" },
+      { title: "Daily Workflow", to: "/docs/quick-start" },
+      { title: "Sample OpModes", to: "/docs/templates" },
     ],
   },
   {
-    title: "Concepts",
+    title: "Architecture",
     links: [
-      { title: "PIDF Terms", to: "/docs/concepts/pidf-terms" },
+      { title: "Shared Concepts", to: "/docs/concepts/pidf-terms" },
       { title: "Tuning Modes", to: "/docs/concepts/tuning-modes" },
-      { title: "How Final PIDF Is Chosen", to: "/docs/concepts/scoring" },
+      { title: "High-Level Architecture", to: "/docs/concepts/scoring" },
     ],
   },
   {
     title: "Velocity Tuner",
     links: [
       { title: "Overview", to: "/docs/velocity/overview" },
-      { title: "Phase 1 — F Sweep", to: "/docs/velocity/f-sweep" },
-      { title: "Phase 2 — Ku Search", to: "/docs/velocity/ku-search" },
-      { title: "Phase 3 — Step Refinement", to: "/docs/velocity/refinement" },
-      { title: "Phase 4 — Disruption", to: "/docs/velocity/disruption" },
+      {
+        title: "Systems",
+        links: [
+          { title: "Characterization & Feedforward", to: "/docs/velocity/f-sweep" },
+          { title: "Relay Auto-Tuning", to: "/docs/velocity/ku-search" },
+          { title: "Running Control & Headroom", to: "/docs/velocity/refinement" },
+          { title: "Disruption Sampling", to: "/docs/velocity/disruption" },
+        ],
+      },
       { title: "Config Reference", to: "/docs/velocity/config" },
     ],
   },
@@ -33,24 +45,24 @@ export const docsNav: DocSection[] = [
     title: "Position Tuner",
     links: [
       { title: "Overview", to: "/docs/position/overview" },
-      { title: "Phase 1 — Hold F Search", to: "/docs/position/hold-f" },
-      { title: "Phase 2 — Ku Search", to: "/docs/position/ku-search" },
-      { title: "Phase 3 — Step Refinement", to: "/docs/position/refinement" },
-      { title: "Phase 4 — Disturbance", to: "/docs/position/disturbance" },
+      {
+        title: "Systems",
+        links: [
+          { title: "Actuator & Feedback Modes", to: "/docs/position/hold-f" },
+          { title: "Motion Profile & Feedforward", to: "/docs/position/ku-search" },
+          { title: "Bounds & Control Flow", to: "/docs/position/refinement" },
+          { title: "Disruption Sampling", to: "/docs/position/disturbance" },
+        ],
+      },
       { title: "Config Reference", to: "/docs/position/config" },
-    ],
-  },
-  {
-    title: "Templates",
-    links: [
-      { title: "All Templates", to: "/docs/templates" },
     ],
   },
   {
     title: "Reference",
     links: [
-      { title: "Telemetry Output", to: "/docs/reference/telemetry" },
-      { title: "Practical Notes", to: "/docs/reference/practical-notes" },
+      { title: "Troubleshooting", to: "/docs/troubleshooting" },
+      { title: "Telemetry & Final Summary", to: "/docs/reference/telemetry" },
+      { title: "Workflows & Caveats", to: "/docs/reference/practical-notes" },
       { title: "Setup Rules", to: "/docs/reference/setup-rules" },
       { title: "FAQ", to: "/docs/reference/faq" },
     ],
@@ -58,5 +70,9 @@ export const docsNav: DocSection[] = [
 ];
 
 export const flatDocs: (DocLink & { section: string })[] = docsNav.flatMap((s) =>
-  s.links.map((l) => ({ ...l, section: s.title })),
+  s.links.flatMap((item) =>
+    isDocLinkGroup(item)
+      ? item.links.map((link) => ({ ...link, section: `${s.title} / ${item.title}` }))
+      : [{ ...item, section: s.title }],
+  ),
 );

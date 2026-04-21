@@ -1,4 +1,5 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { themeInitScript } from "@/lib/theme";
 
 import appCss from "../styles.css?url";
 
@@ -29,14 +30,22 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "PID Pilot" },
+      {
+        name: "description",
+        content:
+          "PID Pilot is a self-contained PIDF tuning framework for FTC mechanisms with live Dashboard config, strong telemetry, and separate velocity and position workflows.",
+      },
+      { name: "author", content: "PID Pilot" },
+      { property: "og:title", content: "PID Pilot" },
+      {
+        property: "og:description",
+        content:
+          "Self-contained PIDF tuning framework for FTC mechanisms with velocity and position tuners.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "PID Pilot" },
     ],
     links: [
       {
@@ -52,8 +61,9 @@ export const Route = createRootRoute({
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <HeadContent />
       </head>
       <body>

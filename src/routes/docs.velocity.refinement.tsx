@@ -4,8 +4,12 @@ import { CodeBlock } from "@/components/CodeBlock";
 export const Route = createFileRoute("/docs/velocity/refinement")({
   head: () => ({
     meta: [
-      { title: "Velocity Phase 3 — Step Refinement — PID Pilot" },
-      { name: "description", content: "Score-driven candidate refinement for velocity PIDF." },
+      { title: "Velocity Running Control & Headroom — PID Pilot" },
+      {
+        name: "description",
+        content:
+          "How VelocityPIDFTuner runs closed-loop control, enforces motor mode, manages target ramping, and warns about unrealistic gains.",
+      },
     ],
   }),
   component: Page,
@@ -14,70 +18,74 @@ export const Route = createFileRoute("/docs/velocity/refinement")({
 function Page() {
   return (
     <>
-      <h1>Phase 3 — Step Refinement</h1>
+      <h1>Running Control &amp; Headroom</h1>
       <p>
-        This is where the final PIDF is usually decided. The Ziegler–Nichols seed gives a
-        usable starting point; refinement makes it good.
+        Once the velocity tuner reaches <strong>RUNNING</strong>, it becomes a normal external
+        closed-loop controller. What makes the framework valuable here is not only the control law,
+        but the sanity logic wrapped around it: motor-mode enforcement, target ramping, integrator
+        headroom, and warnings when the requested operating point is physically dubious.
       </p>
 
-      <h2>The step response</h2>
-      <p>
-        For each candidate PIDF, the tuner runs a full step from rest to target and
-        records:
-      </p>
-      <ul>
-        <li><strong>Overshoot %</strong> — how far past the target velocity went</li>
-        <li><strong>Settling time</strong> — time to stay inside the band around target</li>
-        <li><strong>Steady-state error</strong> — average error after settling</li>
-      </ul>
-
-      <h2>The cost</h2>
-      <CodeBlock
-        language="text"
-        code={`cost = wOvershoot * overshootPct
-     + wSettling  * settlingMs
-     + wSsError   * ssError`}
-      />
-
-      <p>
-        Defaults are <code>wOvershoot=1.5</code>, <code>wSettling=0.001</code>,{" "}
-        <code>wSsError=3.0</code>. <code>MAINTAIN</code> mode shifts these to penalize
-        steady-state error and settling more, and overshoot less.
-      </p>
-
-      <h2>The candidate loop</h2>
+      <h2>Main running loop</h2>
       <ol>
-        <li>Score the current best PIDF</li>
-        <li>For each of P, I, D, F: try <code>+ nudge</code> and <code>- nudge</code></li>
-        <li>If any candidate scores better, adopt it as the new best</li>
-        <li>If a full pass finds nothing better, halve the nudge size</li>
-        <li>Stop when nudge ≤ <code>nudgeMin</code> or after <code>maxIterations</code></li>
+        <li>Read average mechanism velocity.</li>
+        <li>Resolve the active target, including optional ramping.</li>
+        <li>
+          Apply the active gain family for <code>REV_UP</code> or <code>MAINTAIN</code>.
+        </li>
+        <li>
+          Compute PID output through <code>PIDFController</code>.
+        </li>
+        <li>Add the resolved feedforward term.</li>
+        <li>Write raw power to the hardware.</li>
+        <li>Publish telemetry and warnings.</li>
       </ol>
 
+      <h2>Optional target ramping</h2>
       <p>
-        Nudge starts at <code>nudgeStart = 0.12</code> (a 12% scaling) and floors at{" "}
-        <code>nudgeMin = 0.004</code>. <code>I</code> exploration is more aggressive in{" "}
-        <code>MAINTAIN</code> mode because integral correction is what holds speed under
-        load.
+        <code>velocityRampTicksPerSecPerSec(double)</code> lets the tuner slew the active target
+        instead of commanding an instantaneous step. This matters when the mechanism or power system
+        needs a smoother approach before full closed-loop behavior takes over.
       </p>
 
-      <h2>Early termination</h2>
+      <h2>Why ensureMotorMode exists</h2>
       <p>
-        If the current best is already inside <code>thresholds(overshoot, ssErr)</code>,
-        the tuner can stop early to save run time. Defaults are{" "}
-        <code>overshootThreshold = 3.0%</code> and <code>ssErrorThreshold = 15</code>.
+        The tuner must keep motors in <code>RUN_WITHOUT_ENCODER</code>. If another mode slipped in
+        during live config refresh, <code>setPower()</code> could stop meaning raw power and the SDK
+        inner loop could start interpreting the command differently. <code>ensureMotorMode()</code>
+        prevents that nondeterminism.
       </p>
 
-      <h2>Telemetry</h2>
+      <h2>Derived gain sanity logic</h2>
+      <p>
+        <code>updateDerivedGainState()</code> turns controller math into practical warnings. It can
+        derive <code>integralSumMax</code> from remaining output headroom and tell the operator when
+        either feedforward or proportional action is already consuming more output than the
+        mechanism can realistically provide.
+      </p>
+
       <CodeBlock
         language="text"
-        code={`step iter      4/14
-candidate      P+ -> 0.005140  I 0.013200  D 0.000550  F 0.000431
-overshoot      2.1%
-settling       380 ms
-ss error       2.8 ticks
-cost           1.21  (best 1.18)`}
+        code={`warn if kF consumes all headroom
+warn if kP * target is much larger than remaining headroom
+derive integralSumMax from available output when not overridden`}
       />
+
+      <h2>Telemetry categories during running control</h2>
+      <ul>
+        <li>Setpoint, measured velocity, error, and active tuning mode</li>
+        <li>
+          <code>pTerm</code>, <code>iTerm</code>, <code>dTerm</code>, and <code>fTerm</code>
+        </li>
+        <li>Filtered derivative information from the controller core</li>
+        <li>Active gains, feedforward source notes, and warnings</li>
+        <li>Relay or characterization results that remain relevant to the session</li>
+      </ul>
+
+      <blockquote>
+        When a velocity session looks wrong, check headroom and motor mode first. A bad feedforward
+        baseline or a motor-mode conflict will make every gain discussion less honest.
+      </blockquote>
     </>
   );
 }

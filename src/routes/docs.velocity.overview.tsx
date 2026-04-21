@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/docs/velocity/overview")({
   head: () => ({
@@ -6,7 +6,8 @@ export const Route = createFileRoute("/docs/velocity/overview")({
       { title: "Velocity Tuner Overview — PID Pilot" },
       {
         name: "description",
-        content: "VelocityPIDFTuner tunes flywheels and shooters automatically.",
+        content:
+          "Overview of VelocityPIDFTuner, its raw ticks-per-second model, lifecycle phases, and operational responsibilities.",
       },
     ],
   }),
@@ -18,56 +19,83 @@ function Page() {
     <>
       <h1>Velocity Tuner</h1>
       <p>
-        <code>VelocityPIDFTuner</code> is for mechanisms where the target is a{" "}
-        <strong>speed</strong> — flywheels, shooters, intake rollers running at a fixed
-        RPM.
+        <code>VelocityPIDFTuner</code> is a full external velocity-control workflow for FTC
+        mechanisms such as flywheels and shooters. It does not only wrap a PID controller. It
+        handles feedforward sourcing, phase routing, relay auto-tuning, disruption measurement, and
+        telemetry rich enough to explain why the controller behaves the way it does.
       </p>
 
-      <h2>Two control paths</h2>
+      <h2>Raw units are deliberate</h2>
       <p>
-        The velocity tuner works in two distinct modes depending on how you wire the
-        motors:
+        The velocity tuner works in raw <code>ticks/s</code>. That means the gain values often look
+        numerically small, but the numbers are honest: <code>kP</code>, <code>kI</code>,{" "}
+        <code>kD</code>, and <code>kF</code> all correspond to real physical units instead of a
+        hidden normalization scheme.
       </p>
 
-      <table>
-        <thead>
-          <tr><th>Setup</th><th>What the tuner does</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>RUN_USING_ENCODER</code> via{" "}
-              <code>withRunUsingEncoderVelocityMotors(...)</code></td>
-            <td>
-              Estimates F from full-power max velocity. Drives the motor with{" "}
-              <code>setVelocity(...)</code>. Enables disturbance phase in MAINTAIN.
-            </td>
-          </tr>
-          <tr>
-            <td>Power mode via <code>withMotor(...)</code> in{" "}
-              <code>RUN_WITHOUT_ENCODER</code></td>
-            <td>
-              Sweeps motor power upward, fits a power-vs-velocity slope, drives with{" "}
-              <code>setPower(...)</code>.
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <h2>Lifecycle phases</h2>
+      <ul>
+        <li>
+          <strong>CHARACTERIZING</strong> estimates a physical <code>kF</code> from max velocity.
+        </li>
+        <li>
+          <strong>SETTLING</strong> pauses output and clears controller memory before the next step.
+        </li>
+        <li>
+          <strong>RELAY_TUNING</strong> creates a controlled oscillation to estimate usable gains.
+        </li>
+        <li>
+          <strong>RELAY_COMPLETE</strong> briefly surfaces relay results before normal control takes
+          over.
+        </li>
+        <li>
+          <strong>RUNNING</strong> performs normal closed-loop control with active gains.
+        </li>
+        <li>
+          <strong>DISRUPTION</strong> measures recovery after a real disturbance when hold quality
+          matters.
+        </li>
+        <li>
+          <strong>COMPLETE</strong> exposes final summary lines and copyable values.
+        </li>
+      </ul>
 
-      <h2>The four phases</h2>
+      <h2>Main responsibilities inside the class</h2>
       <ol>
-        <li><a href="/docs/velocity/f-sweep">F Sweep</a> — find a feedforward estimate</li>
-        <li><a href="/docs/velocity/ku-search">Ku Search</a> — find rough P, I, D via Ziegler–Nichols</li>
-        <li><a href="/docs/velocity/refinement">Step Refinement</a> — score candidate PIDFs</li>
-        <li><a href="/docs/velocity/disruption">Disruption</a> — MAINTAIN-only recovery test</li>
+        <li>Manage active gain families and mode switching.</li>
+        <li>Resolve the physical feedforward source.</li>
+        <li>Characterize startup behavior when needed.</li>
+        <li>Run relay auto-tuning when enabled.</li>
+        <li>Apply normal closed-loop control in raw power space.</li>
+        <li>
+          Measure disruption recovery in <code>MAINTAIN</code>.
+        </li>
+        <li>Render operational telemetry and warnings.</li>
       </ol>
 
-      <h2>What you get back</h2>
+      <h2>Why motor mode enforcement matters</h2>
       <p>
-        The tuner returns a <code>VelocityPIDFTuner.Result</code> containing the final
-        PIDF, the measured step metrics, and (in MAINTAIN) the measured disturbance
-        recovery metrics. The <code>PIDFTunerOpMode</code> wrapper holds these on screen
-        until you stop the op mode.
+        The tuner is an external power controller and must keep motors in{" "}
+        <code>RUN_WITHOUT_ENCODER</code>. Because the surrounding OpMode refreshes config every
+        loop, user code might accidentally reassert another run mode. If that happened and the tuner
+        did not push back, the SDK’s inner loop could start fighting the tuner's outer loop.
       </p>
+
+      <h2>Important next pages</h2>
+      <ul>
+        <li>
+          <Link to="/docs/velocity/f-sweep">Characterization &amp; Feedforward</Link> explains how
+          physical <code>kF</code> is sourced.
+        </li>
+        <li>
+          <Link to="/docs/velocity/ku-search">Relay Auto-Tuning</Link> explains how the tuner
+          derives conservative starting gains.
+        </li>
+        <li>
+          <Link to="/docs/velocity/refinement">Running Control &amp; Headroom</Link> explains the
+          normal update loop, ramping, and gain sanity warnings.
+        </li>
+      </ul>
     </>
   );
 }

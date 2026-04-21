@@ -1,10 +1,9 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
-
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
 /*
  * Design system definition.
@@ -156,29 +155,191 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
   }
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     font-family: var(--font-display);
     letter-spacing: -0.02em;
   }
-  code, pre, kbd { font-family: var(--font-mono); }
+  code,
+  pre,
+  kbd {
+    font-family: var(--font-mono);
+  }
 }
 
-.prose-docs { color: var(--color-foreground); max-width: 52rem; }
-.prose-docs h1 { font-size: 2.5rem; font-weight: 700; margin-bottom: 0.75rem; line-height: 1.15; }
-.prose-docs > p:first-of-type { font-size: 1.125rem; color: var(--color-muted-foreground); margin-bottom: 2rem; }
-.prose-docs h2 { font-size: 1.65rem; font-weight: 600; margin-top: 3rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--color-border); scroll-margin-top: 5rem; }
-.prose-docs h3 { font-size: 1.25rem; font-weight: 600; margin-top: 2rem; margin-bottom: 0.75rem; scroll-margin-top: 5rem; }
-.prose-docs h4 { font-size: 1.05rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem; }
-.prose-docs p { line-height: 1.75; margin-bottom: 1rem; }
-.prose-docs ul, .prose-docs ol { margin: 1rem 0 1rem 1.25rem; line-height: 1.75; }
-.prose-docs ul { list-style: disc; }
-.prose-docs ol { list-style: decimal; }
-.prose-docs li { margin-bottom: 0.35rem; }
-.prose-docs a { color: var(--color-brand); text-decoration: underline; text-underline-offset: 3px; }
-.prose-docs strong { font-weight: 600; }
-.prose-docs :not(pre) > code { background: var(--color-muted); color: var(--color-brand); padding: 0.15rem 0.4rem; border-radius: 0.3rem; font-size: 0.875em; border: 1px solid var(--color-border); }
-.prose-docs blockquote { border-left: 3px solid var(--color-brand); padding: 0.5rem 1rem; background: var(--color-brand-muted); color: var(--color-foreground); border-radius: 0 0.5rem 0.5rem 0; margin: 1.25rem 0; }
-.prose-docs hr { border-color: var(--color-border); margin: 2.5rem 0; }
-.prose-docs table { width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-size: 0.9rem; }
-.prose-docs th, .prose-docs td { border: 1px solid var(--color-border); padding: 0.55rem 0.85rem; text-align: left; }
-.prose-docs th { background: var(--color-muted); font-weight: 600; }
+@keyframes landing-logo-sway {
+  from {
+    transform: rotate(-2.75deg) translateY(-1px);
+  }
+  to {
+    transform: rotate(2.75deg) translateY(-1px);
+  }
+}
+
+.landing-logo {
+  transform-origin: 50% 10%;
+}
+
+.landing-logo-sway {
+  transform-origin: 50% 10%;
+}
+
+.landing-logo-sway:hover {
+  animation: landing-logo-sway 0.95s ease-in-out infinite alternate;
+}
+
+.prose-docs {
+  color: var(--color-foreground);
+  max-width: 52rem;
+  width: 100%;
+  overflow-wrap: anywhere;
+}
+.prose-docs h1 {
+  font-size: clamp(2rem, 5vw, 2.5rem);
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  line-height: 1.1;
+}
+.prose-docs > p:first-of-type {
+  font-size: clamp(1rem, 2.4vw, 1.125rem);
+  color: var(--color-muted-foreground);
+  margin-bottom: 1.5rem;
+}
+.prose-docs h2 {
+  font-size: clamp(1.35rem, 3.5vw, 1.65rem);
+  font-weight: 600;
+  margin-top: 2.25rem;
+  margin-bottom: 0.9rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+  scroll-margin-top: 5rem;
+}
+.prose-docs h3 {
+  font-size: clamp(1.1rem, 2.8vw, 1.25rem);
+  font-weight: 600;
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+  scroll-margin-top: 5rem;
+}
+.prose-docs h4 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-top: 1.35rem;
+  margin-bottom: 0.5rem;
+}
+.prose-docs p {
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}
+.prose-docs ul,
+.prose-docs ol {
+  margin: 1rem 0 1rem 1.15rem;
+  line-height: 1.7;
+}
+.prose-docs ul {
+  list-style: disc;
+}
+.prose-docs ol {
+  list-style: decimal;
+}
+.prose-docs li {
+  margin-bottom: 0.35rem;
+}
+.prose-docs a {
+  color: var(--color-brand);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.prose-docs strong {
+  font-weight: 600;
+}
+.prose-docs :not(pre) > code {
+  background: var(--color-muted);
+  color: var(--color-brand);
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.3rem;
+  font-size: 0.875em;
+  border: 1px solid var(--color-border);
+}
+.prose-docs blockquote {
+  border-left: 3px solid var(--color-brand);
+  padding: 0.5rem 1rem;
+  background: var(--color-brand-muted);
+  color: var(--color-foreground);
+  border-radius: 0 0.5rem 0.5rem 0;
+  margin: 1.25rem 0;
+}
+.prose-docs hr {
+  border-color: var(--color-border);
+  margin: 2.5rem 0;
+}
+.prose-docs table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 1.25rem 0;
+  font-size: 0.9rem;
+  -webkit-overflow-scrolling: touch;
+}
+.prose-docs th,
+.prose-docs td {
+  border: 1px solid var(--color-border);
+  padding: 0.55rem 0.85rem;
+  text-align: left;
+}
+.prose-docs th {
+  background: var(--color-muted);
+  font-weight: 600;
+}
+
+.docs-code .token.comment,
+.docs-code .token.prolog,
+.docs-code .token.doctype,
+.docs-code .token.cdata {
+  color: oklch(0.76 0.04 255);
+}
+
+.docs-code .token.punctuation,
+.docs-code .token.operator {
+  color: oklch(0.9 0.02 255);
+}
+
+.docs-code .token.keyword,
+.docs-code .token.boolean {
+  color: oklch(0.74 0.18 283);
+}
+
+.docs-code .token.function,
+.docs-code .token.class-name {
+  color: oklch(0.79 0.13 83);
+}
+
+.docs-code .token.string,
+.docs-code .token.char,
+.docs-code .token.attr-value {
+  color: oklch(0.78 0.16 155);
+}
+
+.docs-code .token.number,
+.docs-code .token.constant {
+  color: oklch(0.76 0.16 45);
+}
+
+@media (max-width: 640px) {
+  .prose-docs > p:first-of-type {
+    margin-bottom: 1.25rem;
+  }
+  .prose-docs h2 {
+    margin-top: 2rem;
+  }
+  .prose-docs table {
+    font-size: 0.85rem;
+  }
+  .prose-docs th,
+  .prose-docs td {
+    padding: 0.5rem 0.65rem;
+  }
+}

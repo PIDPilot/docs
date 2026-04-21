@@ -4,7 +4,11 @@ export const Route = createFileRoute("/docs/reference/faq")({
   head: () => ({
     meta: [
       { title: "FAQ — PID Pilot" },
-      { name: "description", content: "Common questions about PID Pilot." },
+      {
+        name: "description",
+        content:
+          "Frequently asked questions about PID Pilot’s tuning modes, feedforward semantics, motor ownership, and supported actuator workflows.",
+      },
     ],
   }),
   component: Page,
@@ -17,71 +21,62 @@ function Page() {
 
       <h2>Why are my REV_UP and MAINTAIN gains different?</h2>
       <p>
-        That's expected. The two modes optimize different cost functions.{" "}
-        <code>REV_UP</code> rewards fast arrival; <code>MAINTAIN</code> rewards holding
-        and disturbance recovery. Pick the mode that matches what the mechanism actually
-        does.
+        Because the framework treats them as different controller personalities. <code>REV_UP</code>{" "}
+        prioritizes getting there quickly. <code>MAINTAIN</code> prioritizes holding near target and
+        recovering from disturbance. Different valid gains for the same mechanism are expected.
       </p>
 
-      <h2>The tuner ran but the mechanism barely moved</h2>
+      <h2>Why does the velocity tuner use raw ticks per second?</h2>
       <p>
-        Most likely the target is too small. The Ku search needs the mechanism to actually
-        oscillate around the target. If the target velocity is below the dead-zone of the
-        motor, no <code>P</code> will ever produce oscillation. Pick a target inside the
-        mechanism's normal operating range.
+        So gain values and feedforward stay physically interpretable. The numbers may look small,
+        but they describe real units rather than a hidden normalization scheme.
       </p>
 
-      <h2>"disruption=skipped" in my result — what happened?</h2>
+      <h2>Why does position kF feel different from velocity kF?</h2>
       <p>
-        The mechanism never reached the ready band within{" "}
-        <code>disruptionDetectTimeoutMs</code>. Usually that means your final PIDF can't
-        actually hold the requested target — try a lower target, or bump{" "}
-        <code>disruptionDetectTimeoutMs</code> if the mechanism just needs more time.
+        Because they are different concepts. Velocity <code>kF</code> is baseline effort per{" "}
+        <code>ticks/s</code>. Position <code>kF</code> is a static trim or friction-help term.
       </p>
 
-      <h2>Can I run two tuner op modes back to back?</h2>
+      <h2>Why does the tuner keep forcing RUN_WITHOUT_ENCODER?</h2>
       <p>
-        Yes. Each op mode is independent. Just remember every run physically exercises the
-        mechanism, so let motors cool between aggressive runs.
+        To stop the SDK’s inner loop from fighting the framework’s outer loop. VelocityPIDFTuner
+        must own motor power control if its math is going to mean what the telemetry says it means.
       </p>
 
-      <h2>Does PID Pilot work for <code>RUN_TO_POSITION</code>?</h2>
+      <h2>Can I skip characterization or relay tuning?</h2>
       <p>
-        No — <code>PositionPIDFTuner</code> implements its own closed loop and writes raw
-        power. Don't combine it with <code>RUN_TO_POSITION</code> mode. Set the motor to{" "}
-        <code>RUN_USING_ENCODER</code> or <code>RUN_WITHOUT_ENCODER</code> and let the
-        tuner's loop handle position control.
+        Yes. Use <code>skipCharacterization(manualKF)</code> when you already trust a physical
+        feedforward, and <code>skipRelayTuning()</code> when you are supplying manual gain families
+        or want to bypass automatic gain estimation.
       </p>
 
-      <h2>How long does a full tune take?</h2>
+      <h2>Why is disruption unavailable in some position sessions?</h2>
       <p>
-        Typically 1–4 minutes. Velocity MAINTAIN with the disruption phase is the longest;
-        position REV_UP with a small range is the shortest. Most of the time is spent in
-        Phase 3 refinement.
+        Because disruption logic is only meaningful when there is real feedback control. In standard
+        servo open-loop mode, the tuner is only mapping target to servo position, so there is no
+        closed-loop hold behavior to evaluate.
       </p>
 
-      <h2>What if my mechanism doesn't have a single "motor"?</h2>
+      <h2>Do I always need position bounds?</h2>
       <p>
-        Use the lambda configuration: <code>.sensor(() {">"} ...)</code> and{" "}
-        <code>.actuator(power {"->"} ...)</code>. See the{" "}
-        <a href="/docs/templates">Templates</a> page for averaged-motor and paired-slide
-        examples.
+        If the mechanism has hard end stops, yes. Bounds are not only for clamping requested
+        targets; they also prevent the controller from continuing to push outward once the mechanism
+        is already at a limit.
       </p>
 
-      <h2>The reported F looks suspiciously round</h2>
+      <h2>Can I use PID Pilot with custom hardware arrangements?</h2>
       <p>
-        For position tuning, <code>F</code> is the smallest hold power that drifted less
-        than <code>fHoldTolerance</code> over 200 ms. It's stepped in <code>0.01</code>{" "}
-        increments, so values like <code>0.09</code> or <code>0.13</code> are normal.
-        Refinement may push it to a non-round value afterward.
+        Usually yes, as long as you can represent the mechanism with one supported actuator family
+        and a meaningful feedback source. The sample OpModes are meant to be adapted, not copied
+        blindly.
       </p>
 
-      <h2>Why "0.33 * Ku" instead of classic Ziegler–Nichols?</h2>
+      <h2>When should I re-run a tune?</h2>
       <p>
-        Classic ZN uses <code>0.6 * Ku</code> for a PID controller. PID Pilot uses{" "}
-        <code>0.33 * Ku</code> intentionally — a calmer seed gives refinement room to find
-        an optimum without fighting the mechanism through dangerous overshoot on the very
-        first step response.
+        Re-run when the physics change: different gearing, repaired mechanism, new motor, changed
+        wheel inertia, changed arm geometry, or different feedback hardware. PIDF values are tied to
+        the actual mechanism, not to the codebase in the abstract.
       </p>
     </>
   );

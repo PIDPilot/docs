@@ -3,8 +3,12 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/docs/reference/practical-notes")({
   head: () => ({
     meta: [
-      { title: "Practical Notes — PID Pilot" },
-      { name: "description", content: "Real-world tuning rules of thumb for FTC mechanisms." },
+      { title: "Workflows & Caveats — PID Pilot" },
+      {
+        name: "description",
+        content:
+          "Practical engineering workflows, tuner differences, extension points, and real-world caveats for PID Pilot.",
+      },
     ],
   }),
   component: Page,
@@ -13,73 +17,94 @@ export const Route = createFileRoute("/docs/reference/practical-notes")({
 function Page() {
   return (
     <>
-      <h1>Practical Notes</h1>
+      <h1>Workflows &amp; Caveats</h1>
       <p>
-        Rules of thumb that apply regardless of which tuner you're running.
+        This page condenses the practical parts of the README that matter once the framework is
+        already installed: how teams typically use each tuner, how the two tuners differ, where the
+        framework is meant to be extended, and what assumptions still need engineering judgment.
       </p>
 
-      <h2>The job of each term</h2>
+      <h2>Typical velocity workflow</h2>
+      <ol>
+        <li>
+          Start from <code>TuneFlywheelNew</code> or an equivalent velocity OpMode.
+        </li>
+        <li>Set a believable target speed.</li>
+        <li>
+          Let characterization compute a physical <code>kF</code> unless you already trust one.
+        </li>
+        <li>Let relay auto-tuning derive starting gain families when appropriate.</li>
+        <li>
+          Compare <code>REV_UP</code> and <code>MAINTAIN</code> against the mechanism’s real job.
+        </li>
+        <li>Use disruption sampling if the wheel must survive repeated load events.</li>
+      </ol>
+
+      <h2>Typical position workflow</h2>
+      <ol>
+        <li>Pick the correct actuator family and feedback source first.</li>
+        <li>Make sure target units are meaningful and consistent.</li>
+        <li>Set tolerance and hard bounds early.</li>
+        <li>Add gravity or cosine compensation if the mechanism physics need it.</li>
+        <li>Enable motion profiling if instantaneous steps are too violent.</li>
+        <li>
+          Tune approach behavior with <code>REV_UP</code> and hold behavior with{" "}
+          <code>MAINTAIN</code>.
+        </li>
+      </ol>
+
+      <h2>Important differences between the tuners</h2>
       <ul>
-        <li><strong>F</strong> should handle most of the constant load.</li>
-        <li><strong>P</strong> should correct immediate error.</li>
-        <li><strong>I</strong> usually helps most with maintain behavior and long-term error.</li>
-        <li>Too much <strong>I</strong> can make recovery slower or cause oscillation.</li>
-        <li>Too much <strong>D</strong> can make the mechanism noisy or unstable.</li>
+        <li>
+          Velocity uses raw <code>ticks/s</code>; position uses normalized move scaling internally.
+        </li>
+        <li>
+          Velocity has characterization and relay auto-tuning; position focuses on actuator and
+          feedforward modeling.
+        </li>
+        <li>
+          Velocity <code>kF</code> is physical feedforward; position <code>kF</code> is static trim.
+        </li>
+        <li>Position supports motors and servos; velocity is motor-oriented.</li>
+        <li>
+          Position can enforce hard bounds; velocity focuses more on motor-mode ownership and
+          headroom sanity.
+        </li>
       </ul>
 
-      <h2>Pick MAINTAIN if real load is involved</h2>
-      <p>
-        If your mechanism experiences real game-piece hits, contact with field elements,
-        or otherwise changing load, <code>MAINTAIN</code> is the better mode to test
-        first. The disturbance phase scoring will steer you toward gains that actually
-        survive contact.
-      </p>
+      <h2>Common extension points</h2>
+      <ul>
+        <li>Config builder surfaces</li>
+        <li>Telemetry keys and status blocks</li>
+        <li>Sample OpModes</li>
+        <li>Relay formulas or acceptance logic</li>
+        <li>Motion-profile shape</li>
+        <li>Final summary formatting or export helpers</li>
+      </ul>
 
-      <h2>Run twice, compare</h2>
-      <p>
-        The cost surface near the optimum is shallow. Running the tuner twice on the same
-        mechanism may land on slightly different PIDF sets. If two runs land in the same
-        ballpark, you're in a stable region. If they're wildly different, something is
-        physically inconsistent — usually loose hardware or a sensor issue.
-      </p>
+      <h2>Practical caveats</h2>
+      <ul>
+        <li>The velocity tuner expects to own motor power control completely.</li>
+        <li>
+          The velocity tuner must keep motors in <code>RUN_WITHOUT_ENCODER</code>.
+        </li>
+        <li>
+          A nonzero position <code>kF</code> is not the same concept as velocity <code>kF</code>.
+        </li>
+        <li>
+          Standard-servo closed-loop quality depends heavily on the quality of external feedback.
+        </li>
+        <li>
+          Motion profiling only affects <code>REV_UP</code> in the position tuner.
+        </li>
+        <li>Disruption phases are meaningful only when real feedback exists.</li>
+        <li>Dashboard defaults are starting points, not guarantees.</li>
+      </ul>
 
-      <h2>Start conservative</h2>
-      <p>
-        For your first run, pick a target velocity or position that's well inside what
-        the mechanism can handle. Once the tuner behaves correctly at a safe target, raise
-        it.
-      </p>
-
-      <h2>Watch the F estimate</h2>
-      <p>
-        For position tuning, if the reported <code>F</code> is at the fallback value
-        (<code>maxPower * 0.3</code>), the hold-F search ran out of attempts. Increase{" "}
-        <code>maxPower</code>, raise <code>fHoldTolerance</code>, or check that the
-        mechanism really can hold position at the search range.
-      </p>
-
-      <h2>Use FTC Dashboard graphs</h2>
-      <p>
-        Numbers tell you the score; graphs tell you why. A fast settling time with a
-        wiggle on the graph means you have low-amplitude oscillation that the cost
-        function isn't catching. Tighten <code>settlingBand</code> or raise{" "}
-        <code>wSsError</code>.
-      </p>
-
-      <h2>Different mechanisms, different gain magnitudes</h2>
-      <p>
-        Don't be alarmed if velocity gains are tiny (1e-3 range) and position gains are
-        much smaller still. They're operating in different unit systems — velocity uses
-        the SDK's internal 32767 scale via <code>setVelocity</code>, while position uses
-        raw <code>setPower</code> on a clamped error.
-      </p>
-
-      <h2>Re-tune when hardware changes</h2>
-      <p>
-        New motor, new belt, swapped flywheel wheel, repaired arm — re-tune. PIDF values
-        are physical fits. Anything that changes inertia, friction, or gearing changes
-        the optimal gains.
-      </p>
+      <blockquote>
+        PID Pilot makes live control work easier to reason about. It does not replace mechanical
+        quality, safe targets, or the need to compare tuner behavior against the real match task.
+      </blockquote>
     </>
   );
 }

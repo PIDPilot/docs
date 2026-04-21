@@ -1,11 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { CodeBlock } from "@/components/CodeBlock";
 
 export const Route = createFileRoute("/docs/quick-start")({
   head: () => ({
     meta: [
-      { title: "Quick Start — PID Pilot" },
-      { name: "description", content: "Tune a flywheel in under five minutes with PID Pilot." },
+      { title: "Daily Workflow — PID Pilot" },
+      {
+        name: "description",
+        content:
+          "Wire a first PID Pilot OpMode, tune live with FTC Dashboard, and copy values back with the right telemetry context.",
+      },
     ],
   }),
   component: Page,
@@ -14,108 +18,135 @@ export const Route = createFileRoute("/docs/quick-start")({
 function Page() {
   return (
     <>
-      <h1>Quick Start</h1>
+      <h1>Daily Workflow</h1>
       <p>
-        Get a flywheel tuned end-to-end. This walk-through assumes you've finished{" "}
-        <a href="/docs/installation">Installation</a> and have a two-motor flywheel wired
-        as <code>outtakeL</code> and <code>outtakeR</code>.
+        This page is the shortest practical route through PID Pilot. The goal is not to memorize
+        every method in the framework. The goal is to stand up a tuning OpMode, run a safe live
+        session, and understand what telemetry to trust when you copy values back into your robot.
       </p>
 
-      <h2>1. Create a tuner op mode</h2>
+      <h2>1. Pick the control family</h2>
+      <ul>
+        <li>
+          Use velocity tuning for flywheels, shooters, and any mechanism whose target is speed.
+        </li>
+        <li>
+          Use position tuning for arms, elevators, slides, turrets, or servo-driven axes whose
+          target is position.
+        </li>
+      </ul>
+
+      <h2>2. Extend the base OpMode</h2>
       <p>
-        Extend <code>PIDFTunerOpMode</code> and override <code>configureVelocity()</code>.
-        Only override one of <code>configureVelocity()</code> or{" "}
-        <code>configurePosition()</code> per op mode.
+        Create a class that extends <code>PIDFTunerOpMode</code> and override exactly one of{" "}
+        <code>configureVelocity()</code> or <code>configurePosition()</code>. The base runner will
+        re-call that method every loop so Dashboard edits take effect immediately.
       </p>
 
       <CodeBlock
-        filename="TuneFlywheel.java"
-        code={`package org.firstinspires.ftc.teamcode.diagnostics.pidfTuners;
+        filename="TuneFlywheelNew.java"
+        language="java"
+        code={`@Config
+@TeleOp(name = "Tune Flywheel New", group = "Tuning")
+public class TuneFlywheelNew extends PIDFTunerOpMode {
 
-import com.acmerobotics.dashboard.config.Config;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-
-@Config
-@TeleOp(name = "Tune Flywheel", group = "Tuning")
-public class TuneFlywheel extends PIDFTunerOpMode {
-
-    public static double TARGET_VELOCITY = 640;
+    public static double TARGET_VELOCITY = 1800.0;
     public static PIDFTuningMode TUNING_MODE = PIDFTuningMode.MAINTAIN;
 
     @Override
     protected VelocityPIDFTuner.Config configureVelocity() {
-        DcMotorEx left  = hardwareMap.get(DcMotorEx.class, "outtakeL");
-        DcMotorEx right = hardwareMap.get(DcMotorEx.class, "outtakeR");
+        DcMotorEx left = hardwareMap.get(DcMotorEx.class, "outtakeLeft");
+        DcMotorEx right = hardwareMap.get(DcMotorEx.class, "outtakeRight");
 
         left.setDirection(DcMotorSimple.Direction.REVERSE);
         right.setDirection(DcMotorSimple.Direction.FORWARD);
-
-        left.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        right.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         return new VelocityPIDFTuner.Config()
                 .target(TARGET_VELOCITY)
                 .tuningMode(TUNING_MODE)
                 .withRunUsingEncoderVelocityMotors(left, right)
+                .runDisruptionPhase(true)
+                .disruptionSamples(5)
                 .telemetry(telemetry);
     }
 }`}
       />
 
-      <h2>2. Run it</h2>
+      <p>
+        A position OpMode looks the same structurally: return a fresh config each loop, bind one
+        actuator family, and expose the values you want to edit in Dashboard.
+      </p>
+
+      <h2>3. Press play and watch the correct things</h2>
       <ol>
-        <li>Pick <strong>Tune Flywheel</strong> from the Tuning group on the driver station.</li>
-        <li>Press <strong>INIT</strong>, then <strong>PLAY</strong>.</li>
-        <li>The flywheel will rev through F-sweep, Ku search, and step refinement.</li>
-        <li>If <code>MAINTAIN</code> is selected, a disruption phase follows.</li>
+        <li>Start conservatively with a target the mechanism can really hit.</li>
+        <li>
+          Press <strong>INIT</strong>, open FTC Dashboard, then press <strong>PLAY</strong>.
+        </li>
+        <li>
+          Use <code>gamepad1.x</code> to toggle between <code>REV_UP</code> and{" "}
+          <code>MAINTAIN</code> while the OpMode is running.
+        </li>
+        <li>
+          Watch the telemetry story, not only the final gain values: terms, feedforward breakdown,
+          warnings, and disturbance behavior matter.
+        </li>
       </ol>
 
+      <h2>4. Read the live session like an engineer</h2>
       <p>
-        Press <kbd>X</kbd> on gamepad 1 at any time to skip the current phase if the
-        mechanism is misbehaving.
+        The framework is designed to tell you whether a problem is bad feedforward, not enough
+        damping, integral windup, motor-mode conflict, or an unsafe target. That is why the
+        telemetry surface includes controller internals and tuner-specific status instead of only a
+        target and a measurement.
       </p>
 
-      <h2>3. Read the result</h2>
+      <ul>
+        <li>
+          Velocity tuning should show characterization, relay metrics when enabled, and headroom
+          warnings when output is unrealistic.
+        </li>
+        <li>
+          Position tuning should show requested vs clamped target, actuator and feedback mode,
+          feedforward pieces, and constraint status.
+        </li>
+        <li>
+          If the mechanism is already misbehaving in the first moments, stop and use{" "}
+          <Link to="/docs/troubleshooting">Troubleshooting</Link> before you keep “tuning.”
+        </li>
+      </ul>
+
+      <h2>5. Copy gains back with context</h2>
       <p>
-        When tuning finishes, the driver station and FTC Dashboard hold the final values
-        on screen until the op mode is stopped:
+        Once the session is complete, copy the values that match the behavior you actually need. A
+        good <code>REV_UP</code> tune and a good <code>MAINTAIN</code> tune can legitimately be
+        different for the same mechanism because they are solving different control problems.
       </p>
+
       <CodeBlock
         language="text"
-        code={`velocity tuning complete
-mode               maintain
-p                  0.004570
-i                  0.013200
-d                  0.000550
-f                  0.000431
-overshoot          1.8%
-settling           412 ms
-ss error           3.2 ticks
-disruption recovery 280 ms
-disruption dip     4.1%
-copy these into the matching controller path`}
+        code={`mode                 MAINTAIN
+pTerm / iTerm / dTerm / fTerm
+active gains         revUp or maintain
+characterized kF     ...
+relay Ku / Pu        ...
+disruption recovery  ...
+warnings             ...`}
       />
 
-      <h2>4. Wire the gains into your controller</h2>
-      <p>
-        Copy the <code>P</code>, <code>I</code>, <code>D</code>, and <code>F</code> values
-        into your real velocity controller. For <code>RUN_USING_ENCODER</code>, that
-        usually means <code>setPIDFCoefficients(...)</code> on each motor.
-      </p>
-
-      <CodeBlock
-        code={`PIDFCoefficients pidf = new PIDFCoefficients(
-        0.004570, 0.013200, 0.000550, 0.000431);
-left.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf);
-right.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidf);`}
-      />
+      <h2>6. Take the result back to the real robot workflow</h2>
+      <ol>
+        <li>
+          Copy the selected gains into the mechanism class that will run in teleop or autonomous.
+        </li>
+        <li>Test the mechanism under the real task, not only under the tuner OpMode.</li>
+        <li>If hardware, gearing, inertia, or feedback changes, re-run the tune.</li>
+      </ol>
 
       <blockquote>
-        That's it. To understand <em>why</em> the tuner picked those values, head to{" "}
-        <a href="/docs/concepts/scoring">How Final PIDF Is Chosen</a>.
+        After your first clean session, go to <Link to="/docs/templates">Sample OpModes</Link> for
+        the three reference examples or jump into the velocity or position sections to understand
+        the exact tuner internals you just watched.
       </blockquote>
     </>
   );

@@ -5,7 +5,11 @@ export const Route = createFileRoute("/docs/velocity/config")({
   head: () => ({
     meta: [
       { title: "Velocity Config Reference — PID Pilot" },
-      { name: "description", content: "Every option on VelocityPIDFTuner.Config." },
+      {
+        name: "description",
+        content:
+          "Reference for VelocityPIDFTuner.Config, including feedforward sources, relay tuning, disruption settings, and validation rules.",
+      },
     ],
   }),
   component: Page,
@@ -16,110 +20,260 @@ function Page() {
     <>
       <h1>Velocity Config Reference</h1>
       <p>
-        Every option on <code>VelocityPIDFTuner.Config</code>. All setters return the
-        config for chaining.
+        <code>VelocityPIDFTuner.Config</code> is the public API for constructing a velocity tuning
+        session. The builder is organized around target selection, motor binding, gain families,
+        feedforward sourcing, relay behavior, and disruption measurement.
       </p>
 
-      <h2>Required</h2>
+      <h2>Required fields</h2>
       <table>
-        <thead><tr><th>Method</th><th>Description</th></tr></thead>
-        <tbody>
-          <tr><td><code>target(double)</code></td><td>Target velocity (ticks/sec)</td></tr>
-          <tr><td><code>sensor(VelocitySupplier)</code></td><td>How to read current velocity</td></tr>
-          <tr><td><code>actuator(ActuatorConsumer)</code></td><td>How to apply a command</td></tr>
-        </tbody>
-      </table>
-
-      <h2>Motor binding shortcuts</h2>
-      <table>
-        <thead><tr><th>Method</th><th>Description</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
         <tbody>
           <tr>
-            <td><code>withMotor(DcMotorEx)</code></td>
-            <td>Single-motor power mode. Sensor = <code>getVelocity</code>, actuator = <code>setPower</code>.</td>
+            <td>
+              <code>target(double)</code>
+            </td>
+            <td>
+              Required target velocity in <code>ticks/s</code>
+            </td>
           </tr>
           <tr>
-            <td><code>withMotors(DcMotorEx...)</code></td>
-            <td>Average velocity across multiple motors, set the same power on all.</td>
+            <td>
+              <code>withMotors(DcMotorEx...)</code>
+            </td>
+            <td>Bind one or more velocity motors controlled together</td>
           </tr>
           <tr>
-            <td><code>withRunUsingEncoderVelocityMotors(DcMotorEx...)</code></td>
-            <td>Closed-loop velocity mode. Uses <code>setVelocity</code>. Enables disruption phase.</td>
+            <td>
+              <code>telemetry(Telemetry)</code>
+            </td>
+            <td>Supply telemetry for Driver Station and Dashboard mirroring</td>
           </tr>
         </tbody>
       </table>
 
-      <h2>Mode &amp; control</h2>
+      <h2>Motor binding</h2>
       <table>
-        <thead><tr><th>Method</th><th>Default</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr><td><code>tuningMode(PIDFTuningMode)</code></td><td><code>REV_UP</code></td></tr>
-          <tr><td><code>telemetry(Telemetry)</code></td><td>—</td></tr>
-          <tr><td><code>loopCheck(LoopCallback)</code></td><td>always continue</td></tr>
-          <tr><td><code>skipCheck(SkipCallback)</code></td><td>never skip</td></tr>
+          <tr>
+            <td>
+              <code>withMotors(DcMotorEx...)</code>
+            </td>
+            <td>Primary motor binding method for the tuner</td>
+          </tr>
+          <tr>
+            <td>
+              <code>withRunUsingEncoderVelocityMotors(DcMotorEx...)</code>
+            </td>
+            <td>Alias that documents operator intent only; the tuner still runs them externally</td>
+          </tr>
         </tbody>
       </table>
 
-      <h2>Phase 1 — F Sweep</h2>
+      <h2>Mode and gain families</h2>
       <table>
-        <thead><tr><th>Method</th><th>Default</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr><td><code>fSweepSteps(int)</code></td><td>15</td></tr>
-          <tr><td><code>fSweepSettleMs(long)</code></td><td>600</td></tr>
-          <tr><td><code>fullPowerCharacterizeMs(long)</code></td><td>1200</td></tr>
-          <tr><td><code>fullPowerSettleMs(long)</code></td><td>500</td></tr>
+          <tr>
+            <td>
+              <code>tuningMode(PIDFTuningMode)</code>
+            </td>
+            <td>Choose the initial active gain family</td>
+          </tr>
+          <tr>
+            <td>
+              <code>revUpGains(kP, kI, kD, kF)</code>
+            </td>
+            <td>
+              Provide manual gains for <code>REV_UP</code>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>maintainGains(kP, kI, kD, kF)</code>
+            </td>
+            <td>
+              Provide manual gains for <code>MAINTAIN</code>
+            </td>
+          </tr>
         </tbody>
       </table>
 
-      <h2>Phase 2 — Ku Search</h2>
+      <h2>Feedforward and characterization</h2>
       <table>
-        <thead><tr><th>Method</th><th>Default</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr><td><code>kuObserveMs(long)</code></td><td>1200</td></tr>
+          <tr>
+            <td>
+              <code>skipCharacterization(double manualKF)</code>
+            </td>
+            <td>
+              Skip startup characterization and force a physical <code>kF</code>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>integralSumMax(double)</code>
+            </td>
+            <td>Override anti-windup if you do not want headroom-derived limits</td>
+          </tr>
+          <tr>
+            <td>
+              <code>derivativeAlpha(double)</code>
+            </td>
+            <td>Tune derivative filtering in the shared controller core</td>
+          </tr>
+          <tr>
+            <td>
+              <code>velocityRampTicksPerSecPerSec(double)</code>
+            </td>
+            <td>Slew-limit target changes during running control</td>
+          </tr>
         </tbody>
       </table>
 
-      <h2>Phase 3 — Refinement</h2>
+      <h2>Relay auto-tuning</h2>
       <table>
-        <thead><tr><th>Method</th><th>Default</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr><td><code>stepObserveMs(long)</code></td><td>1500</td></tr>
-          <tr><td><code>maxIterations(int)</code></td><td>14</td></tr>
-          <tr><td><code>costWeights(o, s, e)</code></td><td>1.5, 0.001, 3.0</td></tr>
-          <tr><td><code>thresholds(overshoot, ssErr)</code></td><td>3.0, 15.0</td></tr>
+          <tr>
+            <td>
+              <code>skipRelayTuning()</code>
+            </td>
+            <td>Bypass relay auto-tuning completely</td>
+          </tr>
+          <tr>
+            <td>
+              <code>relayAmplitude(double)</code>
+            </td>
+            <td>Set relay strength</td>
+          </tr>
+          <tr>
+            <td>
+              <code>relayHysteresisBandPct(double)</code>
+            </td>
+            <td>Set relay deadband as a fraction of target</td>
+          </tr>
+          <tr>
+            <td>
+              <code>relayDetune(double)</code>
+            </td>
+            <td>Scale relay-computed gains conservatively</td>
+          </tr>
         </tbody>
       </table>
 
-      <h2>Phase 4 — Disruption (MAINTAIN only)</h2>
+      <h2>Disruption sampling</h2>
       <table>
-        <thead><tr><th>Method</th><th>Default</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr><td><code>runDisruptionPhase(boolean)</code></td><td>true</td></tr>
-          <tr><td><code>disruptionSamples(int)</code></td><td>5</td></tr>
-          <tr><td><code>disruptionReadyStableMs(long)</code></td><td>350</td></tr>
-          <tr><td><code>disruptionDetectTimeoutMs(long)</code></td><td>5000</td></tr>
-          <tr><td><code>disruptionRecoveryTimeoutMs(long)</code></td><td>2500</td></tr>
-          <tr><td><code>disruptionReadyBandPct(double)</code></td><td>0.05</td></tr>
-          <tr><td><code>disruptionDropThresholdPct(double)</code></td><td>0.08</td></tr>
-          <tr><td><code>maintainDisturbanceMs(long)</code></td><td>180</td></tr>
-          <tr><td><code>maintainDisturbancePower(double)</code></td><td>0.20</td></tr>
-          <tr><td><code>disruptionCostWeights(recovery, dip)</code></td><td>0.002, 1.2</td></tr>
+          <tr>
+            <td>
+              <code>runDisruptionPhase(boolean)</code>
+            </td>
+            <td>Enable or disable disruption timing</td>
+          </tr>
+          <tr>
+            <td>
+              <code>disruptionSamples(int)</code>
+            </td>
+            <td>Number of recovery samples to collect</td>
+          </tr>
+          <tr>
+            <td>
+              <code>disruptionReadyStableMs(long)</code>
+            </td>
+            <td>Stable time required before arming a sample</td>
+          </tr>
+          <tr>
+            <td>
+              <code>disruptionDetectTimeoutMs(long)</code>
+            </td>
+            <td>Maximum wait before the sample is considered missed</td>
+          </tr>
+          <tr>
+            <td>
+              <code>disruptionRecoveryTimeoutMs(long)</code>
+            </td>
+            <td>Maximum recovery wait per sample</td>
+          </tr>
+          <tr>
+            <td>
+              <code>disruptionReadyBandPct(double)</code>
+            </td>
+            <td>Ready band around the target velocity</td>
+          </tr>
+          <tr>
+            <td>
+              <code>disruptionDropThresholdPct(double)</code>
+            </td>
+            <td>Velocity drop required to count as a disturbance</td>
+          </tr>
+          <tr>
+            <td>
+              <code>realDisruptionRefineIterations(int)</code>
+            </td>
+            <td>Reserved placeholder for future expansion</td>
+          </tr>
+          <tr>
+            <td>
+              <code>realDisruptionRefineSamples(int)</code>
+            </td>
+            <td>Reserved placeholder for future expansion</td>
+          </tr>
         </tbody>
       </table>
 
-      <h2>Full example</h2>
+      <h2>Validation rules</h2>
+      <ul>
+        <li>Target must be present.</li>
+        <li>At least one motor must be supplied.</li>
+        <li>Telemetry must be present.</li>
+      </ul>
+
+      <h2>Example session</h2>
       <CodeBlock
+        language="java"
         code={`return new VelocityPIDFTuner.Config()
-        .target(640)
+        .target(TARGET_VELOCITY)
         .tuningMode(PIDFTuningMode.MAINTAIN)
         .withRunUsingEncoderVelocityMotors(left, right)
-        .costWeights(1.0, 0.0015, 4.0)
-        .thresholds(2.0, 8.0)
-        .maxIterations(20)
+        .relayAmplitude(0.12)
+        .relayHysteresisBandPct(0.04)
+        .velocityRampTicksPerSecPerSec(6000.0)
         .runDisruptionPhase(true)
-        .disruptionSamples(7)
-        .maintainDisturbanceMs(220)
-        .maintainDisturbancePower(0.25)
+        .disruptionSamples(5)
         .telemetry(telemetry);`}
       />
     </>

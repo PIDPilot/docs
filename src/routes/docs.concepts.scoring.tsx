@@ -4,10 +4,11 @@ import { CodeBlock } from "@/components/CodeBlock";
 export const Route = createFileRoute("/docs/concepts/scoring")({
   head: () => ({
     meta: [
-      { title: "How Final PIDF Is Chosen — PID Pilot" },
+      { title: "High-Level Architecture — PID Pilot" },
       {
         name: "description",
-        content: "PID Pilot scores candidate PIDF sets with a real cost function and picks the best.",
+        content:
+          "How PIDFController, PIDFTunerOpMode, the velocity tuner, the position tuner, and sample OpModes fit together.",
       },
     ],
   }),
@@ -17,70 +18,112 @@ export const Route = createFileRoute("/docs/concepts/scoring")({
 function Page() {
   return (
     <>
-      <h1>How the Final PIDF Is Chosen</h1>
+      <h1>High-Level Architecture</h1>
       <p>
-        The final PIDF returned by PID Pilot is <strong>not</strong> the first set
-        produced by Ziegler–Nichols. It's the best-scoring candidate found during the
-        refinement loop.
+        The framework is organized so control math, mechanism-specific logic, and runtime
+        orchestration stay separate. That separation is what makes the package teachable and
+        extensible rather than becoming one large opaque OpMode.
       </p>
 
-      <h2>The flow</h2>
-      <ol>
-        <li>The tuner finds an initial <code>F</code></li>
-        <li>The tuner finds an initial <code>P</code>, <code>I</code>, <code>D</code></li>
-        <li>The tuner repeatedly tests nearby PIDF candidates</li>
-        <li>Each candidate is scored from measured behavior</li>
-        <li>The candidate with the lowest cost becomes the current best set</li>
-        <li>The search keeps shrinking its adjustment size until no better candidate is found or thresholds are met</li>
-      </ol>
-
-      <h2>The cost function</h2>
-      <p>
-        The base cost is computed from a real step response:
-      </p>
+      <h2>The loop in one view</h2>
       <CodeBlock
         language="text"
-        code={`cost = wOvershoot * overshoot
-     + wSettling  * settlingTime
-     + wSsError   * steadyStateError`}
+        code={`sample OpMode returns Config
+        ↓
+PIDFTunerOpMode refreshes config every loop
+        ↓
+tuner reads sensors
+        ↓
+PIDFController computes terms
+        ↓
+tuner adds mechanism-specific feedforward and safety logic
+        ↓
+hardware command is applied
+        ↓
+rich telemetry is pushed to Driver Station and Dashboard`}
       />
 
-      <p>
-        In <code>MAINTAIN</code> mode, an extra disturbance cost is added:
-      </p>
-      <CodeBlock
-        language="text"
-        code={`disruptionCost = wDisruptionRecovery * recoveryMs
-              + wDisruptionDip      * dropMagnitude
+      <h2>Class responsibilities</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Class</th>
+            <th>Main responsibility</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <code>PIDFController</code>
+            </td>
+            <td>
+              Raw control math, derivative filtering, term storage, clamping, and reset behavior
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>PIDFTunerOpMode</code>
+            </td>
+            <td>
+              Runtime shell, loop timing, live config refresh, telemetry mirror, and mode toggle
+              handling
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>VelocityPIDFTuner</code>
+            </td>
+            <td>
+              Raw ticks-per-second control, feedforward source selection, relay auto-tuning,
+              disruption recovery, and warnings
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <code>PositionPIDFTuner</code>
+            </td>
+            <td>
+              Actuator abstraction, feedback abstraction, normalization, motion profiles,
+              feedforward layers, constraints, and hold behavior
+            </td>
+          </tr>
+          <tr>
+            <td>Sample OpModes</td>
+            <td>
+              Bind the generic systems to real robot hardware and expose Dashboard-facing fields
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-totalCost = cost + disruptionCost`}
-      />
-
-      <h2>Candidate generation</h2>
+      <h2>Why config is refreshed every loop</h2>
       <p>
-        From the current best PIDF, the tuner produces nearby candidates by nudging each
-        term up and down independently:
-      </p>
-      <ul>
-        <li><code>P</code> ± nudge</li>
-        <li><code>I</code> ± nudge</li>
-        <li><code>D</code> ± nudge</li>
-        <li><code>F</code> ± nudge</li>
-      </ul>
-      <p>
-        If a candidate scores better, it becomes the new best. If a full pass finds
-        nothing better, the nudge size shrinks and the loop continues until it hits{" "}
-        <code>nudgeMin</code> or <code>maxIterations</code>.
+        This is one of the most important design choices in the framework. Because the OpMode
+        re-calls the config builder every cycle, Dashboard edits become live behavior immediately.
+        That makes PID Pilot a real tuning surface, but it also means the tuners must reassert any
+        hardware assumptions that user code might accidentally change during config refresh.
       </p>
 
-      <h2>Why this matters</h2>
+      <h2>Why the tuners own mechanism logic</h2>
       <p>
-        The values reported on screen are <strong>measurements</strong> from the final
-        selected candidate, not extrapolations or guesses. That's also why running the
-        tuner twice on the same mechanism can land on slightly different PIDF sets — the
-        cost surface near the optimum is shallow, and small physical noise can push the
-        final candidate one nudge away.
+        <code>PIDFController</code> deliberately does not know about motors, servos, relay tuning,
+        characterization, motion profiling, or disruption tests. Those belong to the tuners because
+        they are mechanism semantics, not generic PID math.
       </p>
+
+      <h2>What the sample OpModes are for</h2>
+      <p>
+        The sample classes are not a second framework layered on top. They are examples of how to
+        return a config, bind hardware, expose targets, and let the live runner do its job. Once you
+        understand <code>PIDFController</code>, <code>PIDFTunerOpMode</code>, and the relevant
+        tuner, the sample OpModes become straightforward.
+      </p>
+
+      <blockquote>
+        If you need the runtime behavior next, read the velocity or position overview page that
+        matches your mechanism. If you need the engineering assumptions next, read Shared Concepts
+        and Setup Rules.
+      </blockquote>
     </>
   );
 }

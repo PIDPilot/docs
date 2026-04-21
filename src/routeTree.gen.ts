@@ -9,9 +9,11 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TunerLabRouteImport } from './routes/tuner-lab'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DocsIndexRouteImport } from './routes/docs.index'
+import { Route as DocsTroubleshootingRouteImport } from './routes/docs.troubleshooting'
 import { Route as DocsTemplatesRouteImport } from './routes/docs.templates'
 import { Route as DocsQuickStartRouteImport } from './routes/docs.quick-start'
 import { Route as DocsInstallationRouteImport } from './routes/docs.installation'
@@ -35,6 +37,11 @@ import { Route as DocsConceptsTuningModesRouteImport } from './routes/docs.conce
 import { Route as DocsConceptsScoringRouteImport } from './routes/docs.concepts.scoring'
 import { Route as DocsConceptsPidfTermsRouteImport } from './routes/docs.concepts.pidf-terms'
 
+const TunerLabRoute = TunerLabRouteImport.update({
+  id: '/tuner-lab',
+  path: '/tuner-lab',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DocsRoute = DocsRouteImport.update({
   id: '/docs',
   path: '/docs',
@@ -48,6 +55,11 @@ const IndexRoute = IndexRouteImport.update({
 const DocsIndexRoute = DocsIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsTroubleshootingRoute = DocsTroubleshootingRouteImport.update({
+  id: '/troubleshooting',
+  path: '/troubleshooting',
   getParentRoute: () => DocsRoute,
 } as any)
 const DocsTemplatesRoute = DocsTemplatesRouteImport.update({
@@ -165,9 +177,11 @@ const DocsConceptsPidfTermsRoute = DocsConceptsPidfTermsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/docs': typeof DocsRouteWithChildren
+  '/tuner-lab': typeof TunerLabRoute
   '/docs/installation': typeof DocsInstallationRoute
   '/docs/quick-start': typeof DocsQuickStartRoute
   '/docs/templates': typeof DocsTemplatesRoute
+  '/docs/troubleshooting': typeof DocsTroubleshootingRoute
   '/docs/': typeof DocsIndexRoute
   '/docs/concepts/pidf-terms': typeof DocsConceptsPidfTermsRoute
   '/docs/concepts/scoring': typeof DocsConceptsScoringRoute
@@ -191,9 +205,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/tuner-lab': typeof TunerLabRoute
   '/docs/installation': typeof DocsInstallationRoute
   '/docs/quick-start': typeof DocsQuickStartRoute
   '/docs/templates': typeof DocsTemplatesRoute
+  '/docs/troubleshooting': typeof DocsTroubleshootingRoute
   '/docs': typeof DocsIndexRoute
   '/docs/concepts/pidf-terms': typeof DocsConceptsPidfTermsRoute
   '/docs/concepts/scoring': typeof DocsConceptsScoringRoute
@@ -219,9 +235,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/docs': typeof DocsRouteWithChildren
+  '/tuner-lab': typeof TunerLabRoute
   '/docs/installation': typeof DocsInstallationRoute
   '/docs/quick-start': typeof DocsQuickStartRoute
   '/docs/templates': typeof DocsTemplatesRoute
+  '/docs/troubleshooting': typeof DocsTroubleshootingRoute
   '/docs/': typeof DocsIndexRoute
   '/docs/concepts/pidf-terms': typeof DocsConceptsPidfTermsRoute
   '/docs/concepts/scoring': typeof DocsConceptsScoringRoute
@@ -248,9 +266,11 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/docs'
+    | '/tuner-lab'
     | '/docs/installation'
     | '/docs/quick-start'
     | '/docs/templates'
+    | '/docs/troubleshooting'
     | '/docs/'
     | '/docs/concepts/pidf-terms'
     | '/docs/concepts/scoring'
@@ -274,9 +294,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/tuner-lab'
     | '/docs/installation'
     | '/docs/quick-start'
     | '/docs/templates'
+    | '/docs/troubleshooting'
     | '/docs'
     | '/docs/concepts/pidf-terms'
     | '/docs/concepts/scoring'
@@ -301,9 +323,11 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/docs'
+    | '/tuner-lab'
     | '/docs/installation'
     | '/docs/quick-start'
     | '/docs/templates'
+    | '/docs/troubleshooting'
     | '/docs/'
     | '/docs/concepts/pidf-terms'
     | '/docs/concepts/scoring'
@@ -329,10 +353,18 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DocsRoute: typeof DocsRouteWithChildren
+  TunerLabRoute: typeof TunerLabRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tuner-lab': {
+      id: '/tuner-lab'
+      path: '/tuner-lab'
+      fullPath: '/tuner-lab'
+      preLoaderRoute: typeof TunerLabRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/docs': {
       id: '/docs'
       path: '/docs'
@@ -352,6 +384,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/docs/'
       preLoaderRoute: typeof DocsIndexRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/troubleshooting': {
+      id: '/docs/troubleshooting'
+      path: '/troubleshooting'
+      fullPath: '/docs/troubleshooting'
+      preLoaderRoute: typeof DocsTroubleshootingRouteImport
       parentRoute: typeof DocsRoute
     }
     '/docs/templates': {
@@ -515,6 +554,7 @@ interface DocsRouteChildren {
   DocsInstallationRoute: typeof DocsInstallationRoute
   DocsQuickStartRoute: typeof DocsQuickStartRoute
   DocsTemplatesRoute: typeof DocsTemplatesRoute
+  DocsTroubleshootingRoute: typeof DocsTroubleshootingRoute
   DocsIndexRoute: typeof DocsIndexRoute
   DocsConceptsPidfTermsRoute: typeof DocsConceptsPidfTermsRoute
   DocsConceptsScoringRoute: typeof DocsConceptsScoringRoute
@@ -541,6 +581,7 @@ const DocsRouteChildren: DocsRouteChildren = {
   DocsInstallationRoute: DocsInstallationRoute,
   DocsQuickStartRoute: DocsQuickStartRoute,
   DocsTemplatesRoute: DocsTemplatesRoute,
+  DocsTroubleshootingRoute: DocsTroubleshootingRoute,
   DocsIndexRoute: DocsIndexRoute,
   DocsConceptsPidfTermsRoute: DocsConceptsPidfTermsRoute,
   DocsConceptsScoringRoute: DocsConceptsScoringRoute,
@@ -568,6 +609,7 @@ const DocsRouteWithChildren = DocsRoute._addFileChildren(DocsRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DocsRoute: DocsRouteWithChildren,
+  TunerLabRoute: TunerLabRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

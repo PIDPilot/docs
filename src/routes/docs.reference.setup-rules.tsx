@@ -4,7 +4,11 @@ export const Route = createFileRoute("/docs/reference/setup-rules")({
   head: () => ({
     meta: [
       { title: "Setup Rules — PID Pilot" },
-      { name: "description", content: "Hard rules to follow when configuring PID Pilot tuners." },
+      {
+        name: "description",
+        content:
+          "Hard setup rules for using PID Pilot safely and in ways that match the framework’s control model.",
+      },
     ],
   }),
   component: Page,
@@ -15,66 +19,63 @@ function Page() {
     <>
       <h1>Setup Rules</h1>
       <p>
-        Things that <strong>will</strong> bite you if you ignore them.
+        These are the rules worth treating as non-negotiable. Ignoring them usually produces a bad
+        session for reasons that look like tuning trouble but are really setup trouble.
       </p>
 
-      <h2>One configure method per op mode</h2>
+      <h2>Override only one configure method</h2>
       <p>
-        Override exactly one of <code>configureVelocity()</code> or{" "}
-        <code>configurePosition()</code> in any single op mode. Overriding both throws an{" "}
-        <code>IllegalStateException</code> at start. Overriding neither also throws.
+        A tuning OpMode must override exactly one of <code>configureVelocity()</code> or{" "}
+        <code>configurePosition()</code>. The base runner expects a single active control family.
       </p>
 
-      <h2>Always set position limits</h2>
+      <h2>Remember that config refreshes every loop</h2>
       <p>
-        For position tuning, always call{" "}
-        <code>positionLimits(min, max)</code>. The tuner will repeatedly drive the
-        mechanism through its range during refinement. Without correct limits the safety
-        clamp can't protect your hardware.
+        Any hardware assumptions you make inside the configure method need to remain compatible with
+        the tuner on every refresh cycle. Live Dashboard edits are powerful, but they mean the
+        OpMode is not a one-time constructor.
       </p>
 
-      <h2>Use RUN_USING_ENCODER for velocity MAINTAIN</h2>
+      <h2>Let the velocity tuner own motor mode</h2>
       <p>
-        The disruption phase only runs when you used{" "}
-        <code>withRunUsingEncoderVelocityMotors(...)</code>. If you bind via{" "}
-        <code>withMotor(...)</code> in <code>RUN_WITHOUT_ENCODER</code>, the tuner will
-        complete but the disruption phase won't fire and your <code>MAINTAIN</code> result
-        won't include recovery scoring.
+        The velocity tuner is an external power controller and must keep motors in{" "}
+        <code>RUN_WITHOUT_ENCODER</code>. Do not rely on the SDK’s internal velocity mode to “help”
+        it. That produces two loops fighting the same mechanism.
       </p>
 
-      <h2>Verify the mechanism can move freely</h2>
+      <h2>Choose exactly one position actuator family</h2>
       <p>
-        Before pressing PLAY, manually drive the mechanism through the full range you
-        configured. The tuner does <em>not</em> ramp into motion gently — when refinement
-        starts, it commands real step responses immediately.
+        For the position tuner, bind motors, standard servos, or CR servos once and only once. Mixed
+        or ambiguous actuator selection is a configuration error, not an advanced feature.
       </p>
 
-      <h2>Start conservative on targets</h2>
+      <h2>Use meaningful units and safe bounds</h2>
+      <ul>
+        <li>Targets should be in the same units as the feedback source.</li>
+        <li>
+          Position mechanisms with hard stops should use <code>positionBounds(...)</code>.
+        </li>
+        <li>Standard servo modes need a valid open-loop mapping range.</li>
+      </ul>
+
+      <h2>Do not treat position kF like velocity kF</h2>
       <p>
-        First run: pick a target you know the mechanism can hit. Once the tuner completes
-        cleanly at a safe target, raise it. Asking for an impossible target will burn run
-        time looking for oscillation that can't happen.
+        Velocity <code>kF</code> is physical feedforward. Position <code>kF</code> is static trim.
+        If you use one concept as though it were the other, the rest of the tuning session becomes
+        hard to interpret.
       </p>
 
-      <h2>Required Config fields</h2>
+      <h2>Supply telemetry and watch it live</h2>
       <p>
-        The constructor throws <code>IllegalStateException</code> unless both{" "}
-        <code>sensor</code> and <code>actuator</code> are set. The <code>withMotor</code>{" "}
-        family of helpers sets both, so you usually don't have to think about this.
+        Always pass <code>telemetry(telemetry)</code>. PID Pilot is designed around rich telemetry
+        surfaces. Running blind removes one of the framework’s strongest advantages.
       </p>
 
-      <h2>Set telemetry</h2>
+      <h2>Use conservative first targets</h2>
       <p>
-        Always pass <code>.telemetry(telemetry)</code>. PID Pilot will still attach to FTC
-        Dashboard without it, but the driver station won't show progress, which makes
-        debugging from the field much harder.
-      </p>
-
-      <h2>Skip with X if needed</h2>
-      <p>
-        Gamepad 1's <code>X</code> button skips the current phase. Useful if a phase is
-        clearly stuck — but a skipped phase contributes no measurements, so the final
-        result quality drops.
+        The first run should prove the control path, not challenge the mechanism at its absolute
+        limit. Ask for targets the mechanism can really reach and hold before you start raising
+        ambition.
       </p>
     </>
   );
