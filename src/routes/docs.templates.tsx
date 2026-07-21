@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { CodeBlock } from "@/components/CodeBlock";
 
 export const Route = createFileRoute("/docs/templates")({
@@ -8,7 +8,7 @@ export const Route = createFileRoute("/docs/templates")({
       {
         name: "description",
         content:
-          "Reference OpModes for velocity, arm, and elevator tuning in the PID Pilot framework.",
+          "Ready-to-copy velocity, arm, and elevator tuning OpModes for PID Pilot, using relay auto-tune by default.",
       },
     ],
   }),
@@ -20,106 +20,132 @@ function Page() {
     <>
       <h1>Sample OpModes</h1>
       <p>
-        The package includes three reference OpModes that demonstrate how the framework is meant to
-        be used on real FTC hardware. They are intentionally concrete: each one exposes live config
-        fields, binds actual hardware, and highlights the feedforward or motion model that matters
-        for that mechanism family.
+        The library ships three reference OpModes you can copy into TeamCode and adapt. None of them
+        supply gains — each one relies on relay auto-tune, so the pattern to copy is &ldquo;bind
+        hardware, set a target, press start.&rdquo; Change the hardware names and targets to match
+        your robot.
       </p>
 
-      <h2>TuneFlywheelNew</h2>
+      <h2>TuneFlywheel — velocity</h2>
       <p>
-        This is the main velocity example. It is meant for a two-motor shooter or flywheel and
-        demonstrates how to expose target speed and tuning mode live while enabling disruption
-        sampling for hold robustness.
+        A two-motor shooter. Note two things: hardware is cached on the first{" "}
+        <code>configureVelocity()</code> call (the method runs every loop), and the feeder motors are
+        only powered <strong>after</strong> <code>isStarted()</code> — never during INIT.{" "}
+        <code>averageAbsoluteVelocity(true)</code> handles wheels that spin in opposite directions.
       </p>
-
       <CodeBlock
-        filename="TuneFlywheelNew.java"
+        filename="TuneFlywheel.java"
         language="java"
-        code={`return new VelocityPIDFTuner.Config()
-        .target(TARGET_VELOCITY)
-        .tuningMode(TUNING_MODE)
-        .withRunUsingEncoderVelocityMotors(left, right)
-        .runDisruptionPhase(true)
-        .disruptionSamples(5)
-        .telemetry(telemetry);`}
+        code={`private DcMotorEx intake, transfer, left, right;
+private boolean feederStarted;
+
+@Override
+protected VelocityPIDFTuner.Config configureVelocity() {
+    if (left == null) {
+        intake   = hardwareMap.get(DcMotorEx.class, "intake");
+        transfer = hardwareMap.get(DcMotorEx.class, "transfer");
+        left     = hardwareMap.get(DcMotorEx.class, "outtakeL");
+        right    = hardwareMap.get(DcMotorEx.class, "outtakeR");
+        left.setDirection(DcMotorSimple.Direction.REVERSE);
+    }
+    // Only spin the feeder once the match has actually started.
+    if (!feederStarted && isStarted()) {
+        intake.setPower(1);
+        transfer.setPower(1);
+        feederStarted = true;
+    }
+    return new VelocityPIDFTuner.Config()
+            .target(TARGET_VELOCITY)
+            .withMotors(left, right)
+            .averageAbsoluteVelocity(true)
+            .runDisruptionPhase(true)
+            .disruptionSamples(5)
+            .telemetry(telemetry);
+}`}
       />
 
-      <h2>TuneArm</h2>
+      <h2>TuneArm — position with cosine feedforward</h2>
       <p>
-        This is the main angle-dependent position example. It shows an arm tuned in{" "}
-        <code>REV_UP</code> by default, with motion profiling enabled and cosine feedforward
-        configured from an encoder-angle reference.
+        An arm fights gravity as a function of its angle, so it uses cosine feedforward mapped from
+        an encoder reference. Auto-tune handles kP/kI/kD; the feedforward just holds the arm up while
+        it does. Motion profiling smooths large REV_UP moves.
       </p>
-
       <CodeBlock
         filename="TuneArm.java"
         language="java"
-        code={`return new PositionPIDFTuner.Config()
-        .target(TARGET_POSITION)
-        .tuningMode(PIDFTuningMode.REV_UP)
-        .withMotors(arm)
-        .useMotionProfile(MAX_VELOCITY, MAX_ACCELERATION)
-        .feedforwardCosineConstant(K_COS)
-        .cosineFeedforwardReference(ZERO_TICKS, TICKS_PER_RADIAN)
-        .positionBounds(MIN_POSITION, MAX_POSITION)
-        .telemetry(telemetry);`}
+        code={`private DcMotorEx arm;
+
+@Override
+protected PositionPIDFTuner.Config configurePosition() {
+    if (arm == null) {
+        arm = hardwareMap.get(DcMotorEx.class, "arm");
+    }
+    return new PositionPIDFTuner.Config()
+            .target(TARGET_POSITION)
+            .tuningMode(PIDFTuningMode.REV_UP)
+            .withMotors(arm)
+            .useMotionProfile(MAX_VELOCITY, MAX_ACCELERATION)
+            .feedforwardCosineConstant(ARM_KCOS)          // gravity ~ cos(angle)
+            .cosineFeedforwardReference(ZERO_TICKS, TICKS_PER_RADIAN)
+            .telemetry(telemetry);
+}`}
       />
 
-      <h2>TuneElevator</h2>
+      <h2>TuneElevator — position with constant gravity</h2>
       <p>
-        This is the simplest vertical load-holding example. It uses position tuning in{" "}
-        <code>MAINTAIN</code> mode and demonstrates constant gravity compensation without the extra
-        geometry required by cosine feedforward.
+        A vertical lift needs the same hold force at every height, so it uses a single constant
+        gravity feedforward instead of the arm&apos;s cosine geometry. This is the simplest position
+        example.
       </p>
-
       <CodeBlock
         filename="TuneElevator.java"
         language="java"
-        code={`return new PositionPIDFTuner.Config()
-        .target(TARGET_POSITION)
-        .tuningMode(PIDFTuningMode.MAINTAIN)
-        .withMotors(slideLeft, slideRight)
-        .feedforwardGravityConstant(K_G)
-        .positionBounds(MIN_POSITION, MAX_POSITION)
-        .runDisruptionPhase(true)
-        .telemetry(telemetry);`}
+        code={`private DcMotorEx elevator;
+
+@Override
+protected PositionPIDFTuner.Config configurePosition() {
+    if (elevator == null) {
+        elevator = hardwareMap.get(DcMotorEx.class, "elevator");
+    }
+    return new PositionPIDFTuner.Config()
+            .target(TARGET_POSITION)
+            .tuningMode(PIDFTuningMode.MAINTAIN)
+            .withMotors(elevator)
+            .feedforwardGravityConstant(ELEVATOR_KG)
+            .telemetry(telemetry);
+}`}
       />
 
-      <h2>What the samples are teaching</h2>
+      <h2>What the samples teach</h2>
       <ul>
-        <li>Each OpMode returns a fresh config object every loop.</li>
+        <li>Cache hardware once — <code>configure*()</code> runs every loop.</li>
+        <li>Never power auxiliary motors during INIT; gate them on <code>isStarted()</code>.</li>
         <li>
-          Hardware binding is explicit, so a team can see where motor direction, actuator family,
-          bounds, and feedforward are declared.
+          Pick the sample by mechanism <em>physics</em> (constant vs angle-dependent gravity), not
+          just motor count.
         </li>
         <li>
-          Dashboard-facing fields such as target and tuning mode are intentionally exposed so live
-          editing becomes part of the workflow.
-        </li>
-        <li>
-          The examples are not “magic defaults”; they are starting points for a real mechanism.
+          Feedforward (<code>kG</code>, <code>kCos</code>) is your job; kP/kI/kD are auto-tune&apos;s
+          job.
         </li>
       </ul>
 
-      <h2>How to adapt them</h2>
+      <h2>Adapting them</h2>
       <ol>
+        <li>Replace hardware names and motor directions first.</li>
+        <li>Set a safe, reachable target.</li>
         <li>
-          Start from the sample that matches the mechanism physics, not merely the motor count.
+          Add feedforward and, for fragile mechanisms, <code>positionBounds(min, max)</code> before
+          you run.
         </li>
-        <li>Replace hardware names and direction settings first.</li>
-        <li>
-          Add bounds, gravity constants, cosine mapping, or disruption settings before you chase
-          gains.
-        </li>
-        <li>
-          Keep the structure of the OpMode intact so the live runner continues to work as designed.
-        </li>
+        <li>Keep the OpMode structure intact so the live runner works as designed.</li>
       </ol>
 
       <blockquote>
-        If you need the builder surface behind these examples, use the velocity and position config
-        reference pages next rather than guessing method names from old versions of the framework.
+        For the full builder surface, use the{" "}
+        <Link to="/docs/velocity/config">Velocity</Link> and{" "}
+        <Link to="/docs/position/config">Position</Link> config references rather than guessing
+        method names.
       </blockquote>
     </>
   );

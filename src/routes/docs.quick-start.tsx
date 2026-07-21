@@ -4,11 +4,11 @@ import { CodeBlock } from "@/components/CodeBlock";
 export const Route = createFileRoute("/docs/quick-start")({
   head: () => ({
     meta: [
-      { title: "Daily Workflow — PID Pilot" },
+      { title: "Quick Start — PID Pilot" },
       {
         name: "description",
         content:
-          "Wire a first PID Pilot OpMode, tune live with FTC Dashboard, and copy values back with the right telemetry context.",
+          "Get relay auto-tune running on an FTC mechanism in a few minutes: extend PIDFTunerOpMode, return a Config, press start.",
       },
     ],
   }),
@@ -18,135 +18,130 @@ export const Route = createFileRoute("/docs/quick-start")({
 function Page() {
   return (
     <>
-      <h1>Daily Workflow</h1>
+      <h1>Quick Start</h1>
       <p>
-        This page is the shortest practical route through PID Pilot. The goal is not to memorize
-        every method in the framework. The goal is to stand up a tuning OpMode, run a safe live
-        session, and understand what telemetry to trust when you copy values back into your robot.
+        This is the shortest path to a tuned mechanism. You&apos;ll write one small OpMode, press
+        start, and let relay auto-tune find your gains — then read them off FTC Dashboard. Assumes
+        you&apos;ve finished <Link to="/docs/installation">Installation</Link>.
       </p>
 
-      <h2>1. Pick the control family</h2>
+      <h2>1. Pick your tuner</h2>
       <ul>
         <li>
-          Use velocity tuning for flywheels, shooters, and any mechanism whose target is speed.
+          <strong>Velocity</strong> — flywheels, shooters: anything whose target is a speed.
         </li>
         <li>
-          Use position tuning for arms, elevators, slides, turrets, or servo-driven axes whose
-          target is position.
+          <strong>Position</strong> — arms, elevators, slides, turrets: anything driven to a target
+          position.
         </li>
       </ul>
 
-      <h2>2. Extend the base OpMode</h2>
+      <h2>2. Write the OpMode</h2>
       <p>
-        Create a class that extends <code>PIDFTunerOpMode</code> and override exactly one of{" "}
-        <code>configureVelocity()</code> or <code>configurePosition()</code>. The base runner will
-        re-call that method every loop so Dashboard edits take effect immediately.
+        Extend <code>PIDFTunerOpMode</code> and override exactly one of{" "}
+        <code>configureVelocity()</code> or <code>configurePosition()</code>, returning a{" "}
+        <code>Config</code>. That&apos;s the whole setup — you don&apos;t supply gains; auto-tune
+        finds them.
       </p>
 
       <CodeBlock
-        filename="TuneFlywheelNew.java"
+        filename="TuneFlywheel.java"
         language="java"
-        code={`@Config
-@TeleOp(name = "Tune Flywheel New", group = "Tuning")
-public class TuneFlywheelNew extends PIDFTunerOpMode {
+        code={`package org.firstinspires.ftc.teamcode;
 
-    public static double TARGET_VELOCITY = 1800.0;
-    public static PIDFTuningMode TUNING_MODE = PIDFTuningMode.MAINTAIN;
+import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.pidpilot.ftc.PIDFTunerOpMode;
+import com.pidpilot.ftc.VelocityPIDFTuner;
+
+@Config
+@TeleOp(name = "Tune Flywheel", group = "Tuning")
+public class TuneFlywheel extends PIDFTunerOpMode {
+
+    public static double TARGET_VELOCITY = 1800.0; // ticks/sec
+
+    private DcMotorEx left, right;
 
     @Override
     protected VelocityPIDFTuner.Config configureVelocity() {
-        DcMotorEx left = hardwareMap.get(DcMotorEx.class, "outtakeLeft");
-        DcMotorEx right = hardwareMap.get(DcMotorEx.class, "outtakeRight");
-
-        left.setDirection(DcMotorSimple.Direction.REVERSE);
-        right.setDirection(DcMotorSimple.Direction.FORWARD);
-
+        // configure*() runs every loop, so cache hardware the first time only.
+        if (left == null) {
+            left = hardwareMap.get(DcMotorEx.class, "outtakeL");
+            right = hardwareMap.get(DcMotorEx.class, "outtakeR");
+            left.setDirection(DcMotorSimple.Direction.REVERSE);
+        }
         return new VelocityPIDFTuner.Config()
                 .target(TARGET_VELOCITY)
-                .tuningMode(TUNING_MODE)
-                .withRunUsingEncoderVelocityMotors(left, right)
-                .runDisruptionPhase(true)
-                .disruptionSamples(5)
+                .withMotors(left, right)
+                .averageAbsoluteVelocity(true) // wheels spin opposite by design
                 .telemetry(telemetry);
     }
 }`}
       />
 
-      <p>
-        A position OpMode looks the same structurally: return a fresh config each loop, bind one
-        actuator family, and expose the values you want to edit in Dashboard.
-      </p>
+      <blockquote>
+        <code>configureVelocity()</code> / <code>configurePosition()</code> are called{" "}
+        <strong>every control loop</strong> so Dashboard edits to <code>TARGET_VELOCITY</code> apply
+        live. Always cache <code>hardwareMap.get(...)</code> in a field like above — don&apos;t
+        re-fetch each call.
+      </blockquote>
 
-      <h2>3. Press play and watch the correct things</h2>
+      <h2>3. Press start — auto-tune runs</h2>
       <ol>
-        <li>Start conservatively with a target the mechanism can really hit.</li>
+        <li>Choose a target the mechanism can realistically reach.</li>
         <li>
-          Press <strong>INIT</strong>, open FTC Dashboard, then press <strong>PLAY</strong>.
+          Select the OpMode under <strong>Tuning</strong>, press <strong>INIT</strong>, open FTC
+          Dashboard, then press <strong>START</strong>.
         </li>
         <li>
-          Use <code>gamepad1.x</code> to toggle between <code>REV_UP</code> and{" "}
-          <code>MAINTAIN</code> while the OpMode is running.
+          <strong>Hands clear.</strong> Velocity first does a short full-power sweep to estimate{" "}
+          <code>kF</code>, then relay auto-tune oscillates the mechanism around the target and
+          computes gains. Position goes straight to the relay.
         </li>
         <li>
-          Watch the telemetry story, not only the final gain values: terms, feedforward breakdown,
-          warnings, and disturbance behavior matter.
+          When it finishes it holds the target. Press <code>gamepad1.x</code> to flip between{" "}
+          <code>REV_UP</code> and <code>MAINTAIN</code>.
         </li>
       </ol>
 
-      <h2>4. Read the live session like an engineer</h2>
+      <h2>4. Read the gains off Dashboard</h2>
       <p>
-        The framework is designed to tell you whether a problem is bad feedforward, not enough
-        damping, integral windup, motor-mode conflict, or an unsafe target. That is why the
-        telemetry surface includes controller internals and tuner-specific status instead of only a
-        target and a measurement.
+        The tuner streams the computed gains plus the full controller story. Copy the set that
+        matches the behavior you need — a good <code>REV_UP</code> tune and a good{" "}
+        <code>MAINTAIN</code> tune are legitimately different because they solve different problems.
       </p>
-
-      <ul>
-        <li>
-          Velocity tuning should show characterization, relay metrics when enabled, and headroom
-          warnings when output is unrealistic.
-        </li>
-        <li>
-          Position tuning should show requested vs clamped target, actuator and feedback mode,
-          feedforward pieces, and constraint status.
-        </li>
-        <li>
-          If the mechanism is already misbehaving in the first moments, stop and use{" "}
-          <Link to="/docs/troubleshooting">Troubleshooting</Link> before you keep “tuning.”
-        </li>
-      </ul>
-
-      <h2>5. Copy gains back with context</h2>
-      <p>
-        Once the session is complete, copy the values that match the behavior you actually need. A
-        good <code>REV_UP</code> tune and a good <code>MAINTAIN</code> tune can legitimately be
-        different for the same mechanism because they are solving different control problems.
-      </p>
-
       <CodeBlock
         language="text"
-        code={`mode                 MAINTAIN
-pTerm / iTerm / dTerm / fTerm
-active gains         revUp or maintain
-characterized kF     ...
-relay Ku / Pu        ...
-disruption recovery  ...
-warnings             ...`}
+        code={`RelayTune/computedMaintainKP   0.0034
+RelayTune/computedMaintainKI   0.0121
+RelayTune/computedMaintainKD   0.00008
+Gains/activekF                 0.00048   (velocity: characterized)
+RelayTune/Ku / Pu              0.019 / 0.31s
+Diagnostics/phase              RUNNING`}
       />
 
-      <h2>6. Take the result back to the real robot workflow</h2>
+      <h2>5. Put them in your real subsystem</h2>
       <ol>
-        <li>
-          Copy the selected gains into the mechanism class that will run in teleop or autonomous.
-        </li>
-        <li>Test the mechanism under the real task, not only under the tuner OpMode.</li>
-        <li>If hardware, gearing, inertia, or feedback changes, re-run the tune.</li>
+        <li>Drop the selected gains into the mechanism class you run in teleop / autonomous.</li>
+        <li>Test under the real task, not just under the tuner OpMode.</li>
+        <li>Re-run the tune if gearing, inertia, weight, or feedback changes.</li>
       </ol>
 
+      <h2>Prefer to tune by hand?</h2>
+      <p>
+        Auto-tune is the default, not a requirement. Supply <code>.revUpGains(...)</code> and{" "}
+        <code>.maintainGains(...)</code> to start from your own values, or call{" "}
+        <code>.skipRelayTuning()</code> to disable it entirely and adjust every gain live in
+        Dashboard. The <Link to="/docs/concepts/pidf-terms">Concepts</Link> and Advanced sections
+        cover the manual workflow.
+      </p>
+
       <blockquote>
-        After your first clean session, go to <Link to="/docs/templates">Sample OpModes</Link> for
-        the three reference examples or jump into the velocity or position sections to understand
-        the exact tuner internals you just watched.
+        Next: grab a full working example from <Link to="/docs/templates">Sample OpModes</Link>, or
+        read <Link to="/docs/concepts/scoring">How Auto-Tune Works</Link> to understand what just
+        happened.
       </blockquote>
     </>
   );

@@ -70,13 +70,19 @@ function Page() {
             <td>
               <code>withMotors(DcMotorEx...)</code>
             </td>
-            <td>Primary motor binding method for the tuner</td>
+            <td>
+              Bind one or more motors driven together. The tuner forces{" "}
+              <code>RUN_WITHOUT_ENCODER</code> so its outer loop owns control.
+            </td>
           </tr>
           <tr>
             <td>
-              <code>withRunUsingEncoderVelocityMotors(DcMotorEx...)</code>
+              <code>averageAbsoluteVelocity(boolean)</code>
             </td>
-            <td>Alias that documents operator intent only; the tuner still runs them externally</td>
+            <td>
+              Average <code>|velocity|</code> instead of signed velocity — use when paired wheels
+              spin in opposite directions.
+            </td>
           </tr>
         </tbody>
       </table>
@@ -268,7 +274,8 @@ function Page() {
         code={`return new VelocityPIDFTuner.Config()
         .target(TARGET_VELOCITY)
         .tuningMode(PIDFTuningMode.MAINTAIN)
-        .withRunUsingEncoderVelocityMotors(left, right)
+        .withMotors(left, right)
+        .averageAbsoluteVelocity(true)
         .relayAmplitude(0.12)
         .relayHysteresisBandPct(0.04)
         .velocityRampTicksPerSecPerSec(6000.0)

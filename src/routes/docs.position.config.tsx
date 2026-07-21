@@ -173,6 +173,47 @@ function Page() {
         </tbody>
       </table>
 
+      <h2>Relay auto-tuning</h2>
+      <p>
+        For <code>MOTOR</code> and <code>CR_SERVO</code> actuators, relay auto-tune runs on start and
+        computes both gain sets unless you supply both manually or call <code>skipRelayTuning()</code>.
+        See <a href="/docs/position/auto-tune">Position Auto-Tune</a>.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <code>skipRelayTuning()</code>
+            </td>
+            <td>Disable relay auto-tune and start from the supplied / Dashboard-default gains</td>
+          </tr>
+          <tr>
+            <td>
+              <code>relayAmplitude(double)</code>
+            </td>
+            <td>Bang-bang power used to induce the oscillation (default 0.3)</td>
+          </tr>
+          <tr>
+            <td>
+              <code>relayHysteresisBandPct(double)</code>
+            </td>
+            <td>Switching band as a fraction of |target| (default 0.03)</td>
+          </tr>
+          <tr>
+            <td>
+              <code>relayDetune(double)</code>
+            </td>
+            <td>Scale the relay-computed gains — lower is gentler, up to 2.0 (default 1.0)</td>
+          </tr>
+        </tbody>
+      </table>
+
       <h2>Motion profile and bounds</h2>
       <table>
         <thead>

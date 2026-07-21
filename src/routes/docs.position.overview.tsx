@@ -19,11 +19,17 @@ function Page() {
     <>
       <h1>Position Tuner</h1>
       <p>
-        <code>PositionPIDFTuner</code> is broader than the velocity tuner because it supports
-        multiple actuator families behind one consistent API. It covers DC motors, CR servos with
-        feedback encoders, standard servos in open-loop mapping mode, and standard servos in
-        closed-loop mode using external encoder or analog feedback.
+        <code>PositionPIDFTuner</code> tunes anything driven to a target position — arms, elevators,
+        slides, and turrets. For motors and CR servos it{" "}
+        <Link to="/docs/position/auto-tune">auto-tunes on start</Link> via the relay method, the same
+        one-button flow as the velocity tuner. It also supports standard servos (open-loop, or
+        closed-loop with external encoder / analog feedback), which are tuned by hand.
       </p>
+
+      <blockquote>
+        New here? Go straight to <Link to="/docs/position/auto-tune">Position Auto-Tune</Link> —
+        bind a motor, set a target, press start. Everything below is the machinery behind it.
+      </blockquote>
 
       <h2>What makes it different from the velocity tuner</h2>
       <ul>
@@ -58,6 +64,10 @@ function Page() {
 
       <h2>What page to read next</h2>
       <ul>
+        <li>
+          <Link to="/docs/position/auto-tune">Auto-Tune (Relay)</Link> to let it find your gains —
+          the fastest path to a working mechanism.
+        </li>
         <li>
           <Link to="/docs/position/hold-f">Actuator &amp; Feedback Modes</Link> if you are choosing
           how the tuner should read and command the mechanism.

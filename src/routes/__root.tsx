@@ -34,14 +34,14 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "PID Pilot is a self-contained PIDF tuning framework for FTC mechanisms with live Dashboard config, strong telemetry, and separate velocity and position workflows.",
+          "PID Pilot is a drop-in PIDF tuning library for FTC with one-button relay auto-tune for flywheels, arms, and elevators — live on FTC Dashboard.",
       },
       { name: "author", content: "PID Pilot" },
       { property: "og:title", content: "PID Pilot" },
       {
         property: "og:description",
         content:
-          "Self-contained PIDF tuning framework for FTC mechanisms with velocity and position tuners.",
+          "Drop-in PIDF tuning library for FTC with one-button relay auto-tune for velocity and position mechanisms.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

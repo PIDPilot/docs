@@ -72,7 +72,7 @@ export function DocsLayout() {
               to="/tuner-lab"
               className="text-sm font-medium text-muted-foreground transition hover:text-foreground"
             >
-              Framework Lab
+              Tuner Lab
             </Link>
           </nav>
           <div className="hidden md:block">

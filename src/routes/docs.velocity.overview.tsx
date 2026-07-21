@@ -19,11 +19,18 @@ function Page() {
     <>
       <h1>Velocity Tuner</h1>
       <p>
-        <code>VelocityPIDFTuner</code> is a full external velocity-control workflow for FTC
-        mechanisms such as flywheels and shooters. It does not only wrap a PID controller. It
-        handles feedforward sourcing, phase routing, relay auto-tuning, disruption measurement, and
-        telemetry rich enough to explain why the controller behaves the way it does.
+        <code>VelocityPIDFTuner</code> tunes speed-controlled mechanisms — flywheels and shooters. On
+        start it estimates a physical <code>kF</code>, then{" "}
+        <Link to="/docs/velocity/ku-search">relay auto-tunes</Link> kP/kI/kD for you. Beyond that it
+        handles feedforward, phase routing, disruption measurement, and telemetry rich enough to
+        explain why the controller behaves the way it does.
       </p>
+
+      <blockquote>
+        New here? The fastest path is <Link to="/docs/quick-start">Quick Start</Link> — bind your
+        motors, set a target, press start, and read the gains off Dashboard. The pages below explain
+        each phase in depth.
+      </blockquote>
 
       <h2>Raw units are deliberate</h2>
       <p>

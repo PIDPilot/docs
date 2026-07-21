@@ -13,40 +13,42 @@ export const docsNav: DocSection[] = [
     links: [
       { title: "Introduction", to: "/docs" },
       { title: "Installation", to: "/docs/installation" },
-      { title: "Daily Workflow", to: "/docs/quick-start" },
+      { title: "Quick Start", to: "/docs/quick-start" },
       { title: "Sample OpModes", to: "/docs/templates" },
     ],
   },
   {
-    title: "Architecture",
+    title: "Concepts",
     links: [
-      { title: "Shared Concepts", to: "/docs/concepts/pidf-terms" },
-      { title: "Tuning Modes", to: "/docs/concepts/tuning-modes" },
-      { title: "High-Level Architecture", to: "/docs/concepts/scoring" },
+      { title: "PIDF Terms", to: "/docs/concepts/pidf-terms" },
+      { title: "REV_UP vs MAINTAIN", to: "/docs/concepts/tuning-modes" },
+      { title: "How Auto-Tune Works", to: "/docs/concepts/scoring" },
     ],
   },
   {
-    title: "Velocity Tuner",
+    title: "Velocity — Flywheels",
     links: [
       { title: "Overview", to: "/docs/velocity/overview" },
+      { title: "Auto-Tune (Relay)", to: "/docs/velocity/ku-search" },
+      { title: "Config Reference", to: "/docs/velocity/config" },
       {
-        title: "Systems",
+        title: "Advanced",
         links: [
-          { title: "Characterization & Feedforward", to: "/docs/velocity/f-sweep" },
-          { title: "Relay Auto-Tuning", to: "/docs/velocity/ku-search" },
+          { title: "Feedforward Characterization", to: "/docs/velocity/f-sweep" },
           { title: "Running Control & Headroom", to: "/docs/velocity/refinement" },
           { title: "Disruption Sampling", to: "/docs/velocity/disruption" },
         ],
       },
-      { title: "Config Reference", to: "/docs/velocity/config" },
     ],
   },
   {
-    title: "Position Tuner",
+    title: "Position — Arms & Slides",
     links: [
       { title: "Overview", to: "/docs/position/overview" },
+      { title: "Auto-Tune (Relay)", to: "/docs/position/auto-tune" },
+      { title: "Config Reference", to: "/docs/position/config" },
       {
-        title: "Systems",
+        title: "Advanced",
         links: [
           { title: "Actuator & Feedback Modes", to: "/docs/position/hold-f" },
           { title: "Motion Profile & Feedforward", to: "/docs/position/ku-search" },
@@ -54,7 +56,6 @@ export const docsNav: DocSection[] = [
           { title: "Disruption Sampling", to: "/docs/position/disturbance" },
         ],
       },
-      { title: "Config Reference", to: "/docs/position/config" },
     ],
   },
   {

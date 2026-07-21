@@ -7,7 +7,7 @@ export const Route = createFileRoute("/docs/")({
       {
         name: "description",
         content:
-          "Introduction to PID Pilot’s self-contained FTC PIDF tuning framework, package layout, and control philosophy.",
+          "PID Pilot is a drop-in PIDF tuning library for FTC with one-button relay auto-tune for flywheels, arms, and elevators.",
       },
     ],
   }),
@@ -19,130 +19,121 @@ function Page() {
     <>
       <h1>Introduction</h1>
       <p>
-        PID Pilot is a self-contained PIDF tuning framework for FTC mechanisms. It is designed to
-        help a team stand up a tuning OpMode quickly, expose the right controls in FTC Dashboard,
-        and get telemetry that explains what the controller is doing rather than only whether the
-        mechanism “works.”
+        PID Pilot is a drop-in PIDF tuning library for FTC. Point it at a mechanism, run one OpMode,
+        and its relay auto-tune measures the mechanism and computes working gains for you — live on
+        FTC Dashboard, with no controls background required.
       </p>
 
       <p>
-        The package supports two control families: velocity tuning for flywheels and shooters, and
-        position tuning for arms, elevators, slides, turrets, and servo-driven axes. Both families
-        share the same overall philosophy, but they are allowed to behave differently where the
-        physics are different.
+        It covers the two control problems most FTC mechanisms fall into: <strong>velocity</strong>{" "}
+        (flywheels and shooters) and <strong>position</strong> (arms, elevators, slides, turrets, and
+        servo-driven axes). Both share the same controller core and the same auto-tune engine, but
+        each speaks its own mechanism&apos;s language.
       </p>
 
       <div className="not-prose my-8 grid gap-4 md:grid-cols-3">
         <IntroCard
-          title="Daily Workflow"
-          desc="See the shortest path from package install to a useful PIDF session with live Dashboard edits."
+          title="Quick Start"
+          desc="Install the dependency, drop in a sample OpMode, and let auto-tune find your first set of gains."
           to="/docs/quick-start"
-          label="Open Workflow"
+          label="Start here"
         />
         <IntroCard
           title="Velocity Tuner"
-          desc="Learn how characterization, relay auto-tuning, running control, and disruption sampling fit together."
+          desc="Flywheels and shooters: characterization, relay auto-tune, and disruption recovery in raw ticks/sec."
           to="/docs/velocity/overview"
-          label="Open Velocity Docs"
+          label="Velocity docs"
         />
         <IntroCard
           title="Position Tuner"
-          desc="Learn how actuator families, motion profiling, feedforward layers, and hard bounds are organized."
+          desc="Arms, elevators, and slides: relay auto-tune plus gravity feedforward, motion profiles, and bounds."
           to="/docs/position/overview"
-          label="Open Position Docs"
+          label="Position docs"
         />
       </div>
 
-      <h2>What ships in the package</h2>
+      <h2>What auto-tune actually does</h2>
+      <p>
+        Hand-tuning PIDF is the biggest wall new teams hit. PID Pilot removes it with the{" "}
+        <strong>relay method</strong>: it drives the mechanism into a controlled oscillation around
+        your target, measures the oscillation (its ultimate gain <code>Ku</code> and period{" "}
+        <code>Pu</code>), and applies Ziegler–Nichols formulas to produce working{" "}
+        <code>REV_UP</code> and <code>MAINTAIN</code> gains. It runs automatically the first time you
+        start the OpMode, for motors and CR servos, on both tuners.
+      </p>
+      <p>
+        You are never locked into it. Supply your own gains to skip auto-tune, or nudge every gain,
+        band, and timeout live from FTC Dashboard while the mechanism runs.
+      </p>
+
+      <h2>How it runs</h2>
+      <ol>
+        <li>
+          Your OpMode extends <code>PIDFTunerOpMode</code> and returns a <code>Config</code> from{" "}
+          <code>configureVelocity()</code> or <code>configurePosition()</code>.
+        </li>
+        <li>
+          The runner instantiates the matching tuner and drives the live loop — reading sensors,
+          computing control, applying output, and mirroring rich telemetry to the Driver Station and
+          Dashboard.
+        </li>
+        <li>
+          On start it auto-tunes (unless you skipped it), then holds the target so you can watch and
+          refine.
+        </li>
+        <li>
+          <code>gamepad1.x</code> toggles between <code>REV_UP</code> (fast approach) and{" "}
+          <code>MAINTAIN</code> (steady-state hold) live.
+        </li>
+      </ol>
+
+      <h2>What&apos;s in the library</h2>
       <ul>
         <li>
-          <code>PIDFController.java</code> for the shared control math and exposed controller
-          internals.
+          <code>PIDFController</code> — the shared control math: derivative-on-measurement,
+          anti-windup, and fully exposed term state.
         </li>
         <li>
-          <code>PIDFTunerOpMode.java</code> for the live runner, config refresh, telemetry mirror,
-          and tuning-mode toggle behavior.
+          <code>PIDFTunerOpMode</code> — the live runner: config refresh every loop, telemetry
+          mirroring, and the mode toggle.
         </li>
         <li>
-          <code>PIDFTuningMode.java</code> with the shared <code>REV_UP</code> and{" "}
-          <code>MAINTAIN</code> language.
+          <code>VelocityPIDFTuner</code> — raw <code>ticks/s</code> control, feedforward
+          characterization, relay auto-tune, and disruption recovery.
         </li>
         <li>
-          <code>VelocityPIDFTuner.java</code> for raw <code>ticks/s</code> control,
-          characterization, relay auto-tuning, and disruption recovery.
+          <code>PositionPIDFTuner</code> — motors, CR servos, and standard servos, with relay
+          auto-tune, motion profiles, gravity/cosine feedforward, and hard bounds.
         </li>
         <li>
-          <code>PositionPIDFTuner.java</code> for motors, CR servos, standard servos, motion
-          profiles, feedforward layers, and hard bounds.
-        </li>
-        <li>
-          Sample OpModes such as <code>TuneFlywheelNew</code>, <code>TuneArm</code>, and{" "}
+          Ready-to-copy sample OpModes: <code>TuneFlywheelNew</code>, <code>TuneArm</code>, and{" "}
           <code>TuneElevator</code>.
         </li>
       </ul>
 
-      <h2>Design goals</h2>
-      <ul>
-        <li>The tuners own the outer control loop themselves.</li>
-        <li>FTC Dashboard is treated as a live tuning surface, not only a logging sink.</li>
-        <li>
-          <code>REV_UP</code> and <code>MAINTAIN</code> are separate behaviors with separate gain
-          sets.
-        </li>
-        <li>
-          Telemetry is detailed enough to diagnose controller behavior, not only show a target.
-        </li>
-        <li>
-          Feedforward and feedback stay separated clearly enough for teams to reason about them.
-        </li>
-        <li>Velocity and position are documented as different engineering workflows.</li>
-      </ul>
-
-      <h2>How the framework runs</h2>
-      <ol>
-        <li>A concrete OpMode returns a fresh velocity or position config object.</li>
-        <li>
-          <code>PIDFTunerOpMode</code> instantiates the matching tuner and enters the main loop.
-        </li>
-        <li>
-          Every cycle the OpMode re-reads config, refreshes the tuner, reads sensors, updates
-          control, and publishes telemetry.
-        </li>
-        <li>
-          The driver can toggle between <code>REV_UP</code> and <code>MAINTAIN</code> using{" "}
-          <code>gamepad1.x</code>.
-        </li>
-      </ol>
-
-      <h2>Why teams use it every day</h2>
-      <p>
-        PID Pilot is useful when a team needs more than a bag of gains. The framework helps them
-        build one repeatable live-tuning surface across mechanisms, preserve the meaning of terms
-        like feedforward and headroom, and teach the next student what a stable loop looked like in
-        telemetry rather than only what number got copied.
-      </p>
-
       <h2>Suggested reading order</h2>
       <ol>
         <li>
-          Read <Link to="/docs/installation">Installation</Link> and{" "}
-          <Link to="/docs/quick-start">Daily Workflow</Link> if you are adopting the package now.
+          <Link to="/docs/installation">Installation</Link> then{" "}
+          <Link to="/docs/quick-start">Quick Start</Link> to get auto-tune running.
         </li>
         <li>
-          Read <Link to="/docs/concepts/scoring">High-Level Architecture</Link> if you need to
-          understand how the classes fit together.
+          <Link to="/docs/concepts/pidf-terms">PIDF Terms</Link> and{" "}
+          <Link to="/docs/concepts/scoring">How Auto-Tune Works</Link> to understand what the numbers
+          mean.
         </li>
-        <li>Go to the velocity or position section that matches your mechanism.</li>
+        <li>The velocity or position section that matches your mechanism.</li>
         <li>
-          Use <Link to="/docs/reference/telemetry">Telemetry &amp; Final Summary</Link> and{" "}
-          <Link to="/docs/troubleshooting">Troubleshooting</Link> when the robot behavior is the
-          thing you need to decode.
+          <Link to="/docs/reference/telemetry">Telemetry</Link> and{" "}
+          <Link to="/docs/troubleshooting">Troubleshooting</Link> when you need to decode real
+          behavior.
         </li>
       </ol>
 
       <blockquote>
-        PID Pilot works best when the mechanism is already physically healthy. It helps teams reason
-        about control; it does not hide bad hardware, unsafe ranges, or inconsistent sensors.
+        PID Pilot reasons about control; it does not hide bad hardware. It works best when the
+        mechanism is already mechanically healthy, with a safe range of motion and consistent
+        sensors.
       </blockquote>
     </>
   );

@@ -33,6 +33,7 @@ import { Route as DocsPositionKuSearchRouteImport } from './routes/docs.position
 import { Route as DocsPositionHoldFRouteImport } from './routes/docs.position.hold-f'
 import { Route as DocsPositionDisturbanceRouteImport } from './routes/docs.position.disturbance'
 import { Route as DocsPositionConfigRouteImport } from './routes/docs.position.config'
+import { Route as DocsPositionAutoTuneRouteImport } from './routes/docs.position.auto-tune'
 import { Route as DocsConceptsTuningModesRouteImport } from './routes/docs.concepts.tuning-modes'
 import { Route as DocsConceptsScoringRouteImport } from './routes/docs.concepts.scoring'
 import { Route as DocsConceptsPidfTermsRouteImport } from './routes/docs.concepts.pidf-terms'
@@ -158,6 +159,11 @@ const DocsPositionConfigRoute = DocsPositionConfigRouteImport.update({
   path: '/position/config',
   getParentRoute: () => DocsRoute,
 } as any)
+const DocsPositionAutoTuneRoute = DocsPositionAutoTuneRouteImport.update({
+  id: '/position/auto-tune',
+  path: '/position/auto-tune',
+  getParentRoute: () => DocsRoute,
+} as any)
 const DocsConceptsTuningModesRoute = DocsConceptsTuningModesRouteImport.update({
   id: '/concepts/tuning-modes',
   path: '/concepts/tuning-modes',
@@ -186,6 +192,7 @@ export interface FileRoutesByFullPath {
   '/docs/concepts/pidf-terms': typeof DocsConceptsPidfTermsRoute
   '/docs/concepts/scoring': typeof DocsConceptsScoringRoute
   '/docs/concepts/tuning-modes': typeof DocsConceptsTuningModesRoute
+  '/docs/position/auto-tune': typeof DocsPositionAutoTuneRoute
   '/docs/position/config': typeof DocsPositionConfigRoute
   '/docs/position/disturbance': typeof DocsPositionDisturbanceRoute
   '/docs/position/hold-f': typeof DocsPositionHoldFRoute
@@ -214,6 +221,7 @@ export interface FileRoutesByTo {
   '/docs/concepts/pidf-terms': typeof DocsConceptsPidfTermsRoute
   '/docs/concepts/scoring': typeof DocsConceptsScoringRoute
   '/docs/concepts/tuning-modes': typeof DocsConceptsTuningModesRoute
+  '/docs/position/auto-tune': typeof DocsPositionAutoTuneRoute
   '/docs/position/config': typeof DocsPositionConfigRoute
   '/docs/position/disturbance': typeof DocsPositionDisturbanceRoute
   '/docs/position/hold-f': typeof DocsPositionHoldFRoute
@@ -244,6 +252,7 @@ export interface FileRoutesById {
   '/docs/concepts/pidf-terms': typeof DocsConceptsPidfTermsRoute
   '/docs/concepts/scoring': typeof DocsConceptsScoringRoute
   '/docs/concepts/tuning-modes': typeof DocsConceptsTuningModesRoute
+  '/docs/position/auto-tune': typeof DocsPositionAutoTuneRoute
   '/docs/position/config': typeof DocsPositionConfigRoute
   '/docs/position/disturbance': typeof DocsPositionDisturbanceRoute
   '/docs/position/hold-f': typeof DocsPositionHoldFRoute
@@ -275,6 +284,7 @@ export interface FileRouteTypes {
     | '/docs/concepts/pidf-terms'
     | '/docs/concepts/scoring'
     | '/docs/concepts/tuning-modes'
+    | '/docs/position/auto-tune'
     | '/docs/position/config'
     | '/docs/position/disturbance'
     | '/docs/position/hold-f'
@@ -303,6 +313,7 @@ export interface FileRouteTypes {
     | '/docs/concepts/pidf-terms'
     | '/docs/concepts/scoring'
     | '/docs/concepts/tuning-modes'
+    | '/docs/position/auto-tune'
     | '/docs/position/config'
     | '/docs/position/disturbance'
     | '/docs/position/hold-f'
@@ -332,6 +343,7 @@ export interface FileRouteTypes {
     | '/docs/concepts/pidf-terms'
     | '/docs/concepts/scoring'
     | '/docs/concepts/tuning-modes'
+    | '/docs/position/auto-tune'
     | '/docs/position/config'
     | '/docs/position/disturbance'
     | '/docs/position/hold-f'
@@ -526,6 +538,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DocsPositionConfigRouteImport
       parentRoute: typeof DocsRoute
     }
+    '/docs/position/auto-tune': {
+      id: '/docs/position/auto-tune'
+      path: '/position/auto-tune'
+      fullPath: '/docs/position/auto-tune'
+      preLoaderRoute: typeof DocsPositionAutoTuneRouteImport
+      parentRoute: typeof DocsRoute
+    }
     '/docs/concepts/tuning-modes': {
       id: '/docs/concepts/tuning-modes'
       path: '/concepts/tuning-modes'
@@ -559,6 +578,7 @@ interface DocsRouteChildren {
   DocsConceptsPidfTermsRoute: typeof DocsConceptsPidfTermsRoute
   DocsConceptsScoringRoute: typeof DocsConceptsScoringRoute
   DocsConceptsTuningModesRoute: typeof DocsConceptsTuningModesRoute
+  DocsPositionAutoTuneRoute: typeof DocsPositionAutoTuneRoute
   DocsPositionConfigRoute: typeof DocsPositionConfigRoute
   DocsPositionDisturbanceRoute: typeof DocsPositionDisturbanceRoute
   DocsPositionHoldFRoute: typeof DocsPositionHoldFRoute
@@ -586,6 +606,7 @@ const DocsRouteChildren: DocsRouteChildren = {
   DocsConceptsPidfTermsRoute: DocsConceptsPidfTermsRoute,
   DocsConceptsScoringRoute: DocsConceptsScoringRoute,
   DocsConceptsTuningModesRoute: DocsConceptsTuningModesRoute,
+  DocsPositionAutoTuneRoute: DocsPositionAutoTuneRoute,
   DocsPositionConfigRoute: DocsPositionConfigRoute,
   DocsPositionDisturbanceRoute: DocsPositionDisturbanceRoute,
   DocsPositionHoldFRoute: DocsPositionHoldFRoute,
