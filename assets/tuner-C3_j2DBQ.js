@@ -1,0 +1,1 @@
+import{c as e,j as t}from"./index-BsC_dIoU.js";function o(){return e("tuner:route-component"),t.jsx("div",{style:{padding:40,fontSize:24},children:"TUNER MINIMAL OK — if you can read this, the router is fine and the freeze is in the real tuner component/imports."})}export{o as component};
